@@ -1,0 +1,20 @@
+Blockly.MIXLY_Dofrobot_CHAOSHENGBO ='Ultrasonic ';
+Blockly.MIXLY_Dofrobot_TURNRIGHT= 'Turning Right';
+
+Blockly.MIXLY_DOFROBOT_MOVE ='Dofrobot forward';
+Blockly.MIXLY_DOFROBOT_BACK = 'Moving backward';
+Blockly.MIXLY_Dofrobot_SERVO_TEST= 'Servo Module';
+Blockly.MIXLY_Dofrobot_CIRCLE = 'Dancing-circle';
+Blockly.MIXLY_Dofrobot_DANCINGONE= 'Turning left';
+Blockly.MIXLY_Dofrobot_LEGLIFT='Dancing-right leg lift';
+Blockly.MIXLY_Dofrobot_aviodance='Avoidance module';
+Blockly.MIXLY_Dofrobot_DANCINGTWO= 'Dancing-Merger legs';
+Blockly.MIXLY_DOFROBOT_VEL= ' speed';
+Blockly.MIXLY_Dofrobot_JIAODU='Servo Angle（0~180）';
+Blockly.MIXLY_Dofrobot_PIN='PIN';
+Blockly.MIXLY_DOFROBOT_BACKVEL= 'Moving backward';
+Blockly.MIXLY_DOFROBOT_MOVEFOR= 'Moving forward';
+Blockly.MIXLY_Dofrobot_kong= 'Turning Left';
+Blockly.MIXLY_Dofrobot_AVOID= 'Avoidance';
+Blockly.MIXLY_Dofrobot_BI= 'Avoidance Distance';
+Blockly.MIXLY_Dofrobot_DANCINGTHREE= 'Dancing-small Step';
