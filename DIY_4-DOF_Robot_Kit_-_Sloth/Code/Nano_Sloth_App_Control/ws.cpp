@@ -1,7 +1,6 @@
 #include "ws.h"
 #include "string.h"
 
-// const char* send_buf = "{\"Name\":\"Pcar\", \"Type\":\"Pcar\", \"Check\":\"SC\", \"A\":\"114.514\"}";
 char recvBuffer[WS_BUFFER_SIZE + strlen(WS_HEADER)];
 
 /**
@@ -70,7 +69,6 @@ void WS::begin(const char* ssid, const char* password, const char* wifi_mode, co
 void (*__on_receive__)();
 
 
-
 /**
  * @brief Set callback function method
  *         
@@ -85,19 +83,10 @@ void WS::setOnReceived(void (*func)()) { __on_receive__ = func; }
  */
 
 void WS::loop() {
-    // char sendBuffer[WS_BUFFER_SIZE + strlen(WS_HEADER)];
-    // StrClear(sendBuffer);
     StrClear(recvBuffer);
     this->readInto(recvBuffer);
     
     if (strlen(recvBuffer) != 0) {
-        // if (IsStartWith(recvBuffer, WS_HEADER)) {
-        //     // this->subString(recvBuffer, strlen(WS_HEADER));
-        //     if (__on_receive__ != NULL) {
-        //         serializeJson(send_doc, sendBuffer);
-        //         __on_receive__(recvBuffer, sendBuffer);
-        //     }
-        // }
         if (__on_receive__ != NULL) {
             deserializeJson(recv_doc, recvBuffer);
             // __on_receive__(recvBuffer, sendBuffer);
@@ -105,15 +94,7 @@ void WS::loop() {
 
         }
         this->sendData();
-        Serial.println(strlen(recvBuffer));
     }
-
-    // serializeJson(send_doc, sendBuffer);
-    // Serial.print("send:");Serial.println(sendBuffer);
-    // this->sendData(sendBuffer);
-
-    // this->sendData();
-
 }
 
 /** 
@@ -126,13 +107,8 @@ void WS::readInto(char* buffer) {
     char incomingChar;
     StrClear(buffer);
     uint32_t count = 0;
-
     
-    // recv Byte
-    // int buff_len =  DateSerial.available();
     while (DateSerial.available()) {
-        // Serial.print("len: ");Serial.println(buff_len);
-        // Serial.print(count);
         count += 1;
         if (count > WS_BUFFER_SIZE) {
             finished = true;
@@ -143,8 +119,10 @@ void WS::readInto(char* buffer) {
 
         if (incomingChar == '\n') {
             finished = true;
-            Serial.print("recv: ");
-            Serial.println(buffer);
+            #if DEBUG == 1
+                Serial.print("recv: ");
+                Serial.println(buffer);
+            #endif
             break;
         } else if (incomingChar == '\r') {
             // Serial.println();
@@ -155,13 +133,8 @@ void WS::readInto(char* buffer) {
         } else if ((int)incomingChar > 31 && (int)incomingChar < 127) {
             StrAppend(buffer, incomingChar);
             delayMicroseconds(100); // This delay is necessary, wait for operation complete 
-            // Serial.println(buffer);
         }
-
-        // buff_len =  DateSerial.available();
-
     }
-
 }
 
 
@@ -256,16 +229,6 @@ void WS::get(const char* command, const char* value, char* result) {
  *         
  * @param sendBuffer  Pointer to the character value of the data buffer to be sent
  */
-#if 0
-void WS::sendData(char* sendBuffer) {
-//   DateSerial.print(F(WS_HEADER));    // print ends with "/r/n" 
-//   DateSerial.println(sendBuffer);
-    DateSerial.write(WS_HEADER);    // write ends with none 
-    DateSerial.write(sendBuffer); 
-    DateSerial.write("\n");       
-}
-#endif
-
 void WS::sendData() {
     //send static content
     DateSerial.print(F(WS_HEADER));

@@ -3,11 +3,9 @@
 
 #include "Arduino.h"
 #include <ArduinoJson.h>
-#include "debug.h"
-
 
 /* Enable debug */
-#define DEBUG 1
+#define DEBUG 0
 
 /* Define built-in LED pin */
 #define BUILT_IN_LED 13

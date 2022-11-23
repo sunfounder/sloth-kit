@@ -1,5 +1,5 @@
-#ifndef _SERVOS_CONTROL_H
-#define _SERVOS_CONTROL_H
+#ifndef SERVOS_CONTROL_H
+#define SERVOS_CONTROL_H
 
 #include "VarSpeedServo.h"
 #include <NewPing.h>

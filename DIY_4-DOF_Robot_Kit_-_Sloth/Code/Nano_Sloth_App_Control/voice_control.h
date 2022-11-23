@@ -1,5 +1,5 @@
-#ifndef __VOICE_CONTROL_H__
-#define __VOICE_CONTROL_H__
+#ifndef VOICE_CONTROL_H__
+#define VOICE_CONTROL_H__
 
 #include <Arduino.h>
 #include "servos_control.h"
