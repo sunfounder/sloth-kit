@@ -107,6 +107,8 @@ void WS::readInto(char* buffer) {
     char incomingChar;
     StrClear(buffer);
     uint32_t count = 0;
+    char check_buffer[4];
+    uint8_t check_flag = 0;
     
     while (DateSerial.available()) {
         count += 1;
@@ -125,14 +127,42 @@ void WS::readInto(char* buffer) {
             #endif
             break;
         } else if (incomingChar == '\r') {
-            // Serial.println();
             continue;
         } else if (incomingChar == '{') {
             StrClear(buffer);
             StrAppend(buffer, '{');
+            StrClear(check_buffer);
+            check_flag = 1;
         } else if ((int)incomingChar > 31 && (int)incomingChar < 127) {
             StrAppend(buffer, incomingChar);
             delayMicroseconds(100); // This delay is necessary, wait for operation complete 
+        }
+
+        if(check_flag && check_flag < 8){
+            if(check_flag == 1 and incomingChar == 'L') {
+                check_flag = 2;
+            } else if(check_flag == 2 and incomingChar == 'e') {
+                check_flag = 3;
+            } else if(check_flag == 3 and incomingChar == 'n') {
+                check_flag = 4;
+            } else {
+                StrAppend(check_buffer, incomingChar);
+                check_flag ++;
+            }
+        }
+    }
+
+    if (finished && check_flag != 8) {
+        finished = false;
+        StrClear(buffer);
+        StrClear(check_buffer);
+    } else{
+        uint32_t len = (check_buffer[0]-'0')*1000 + (check_buffer[1]-'0')*100 
+                    + (check_buffer[2]-'0')*10 + (check_buffer[3]-'0')*1
+        if(len != count) {
+            finished = false;
+            StrClear(buffer);
+            StrClear(check_buffer);            
         }
     }
 }
