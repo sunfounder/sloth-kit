@@ -7,6 +7,9 @@
 /* Enable debug */
 #define WS_DEBUG 1
 
+/* Enable Serial data length check*/
+#define LEN_CHECK 1
+
 /* Define built-in LED pin */
 #define BUILT_IN_LED 13
 
@@ -49,8 +52,8 @@
 
 class WS {
     public:
-        StaticJsonDocument<400> recv_doc;
-        StaticJsonDocument<400> send_doc;
+        StaticJsonDocument<200> recv_doc;
+        StaticJsonDocument<200> send_doc;
 
         void begin(
             const char* ssid, 

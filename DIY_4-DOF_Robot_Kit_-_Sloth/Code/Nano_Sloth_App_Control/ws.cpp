@@ -106,7 +106,7 @@ void WS::readInto(char* buffer) {
     char incomingChar;
     StrClear(buffer);
     uint32_t count = 0;
-    char check_buffer[4];
+    char check_buffer[5]; // Attention, Length must be greater than 5 to avoid conflict with other data
     uint8_t check_flag = 0;
     
     while (DateSerial.available()) {
@@ -135,38 +135,44 @@ void WS::readInto(char* buffer) {
             delayMicroseconds(100); // This delay is necessary, wait for operation complete 
             count ++;
         }
-
-        if(check_flag && check_flag < 8){
-            if(check_flag == 1 and incomingChar == 'L') {
-                check_flag = 2;
-            } else if(check_flag == 2 and incomingChar == 'e') {
-                check_flag = 3;
-            } else if(check_flag == 3 and incomingChar == 'n') {
-                check_flag = 4;
-            } else if(check_flag > 3){
-                if(incomingChar >= '0' && incomingChar <= '9'){
-                    StrAppend(check_buffer, incomingChar);
-                    check_flag ++;
+        #if LEN_CHECK == 1
+            if(check_flag && check_flag < 8){
+                if(check_flag == 1 && incomingChar == 'L') {
+                    check_flag = 2;
+                } else if(check_flag == 2 && incomingChar == 'e') {
+                    check_flag = 3;
+                } else if(check_flag == 3 && incomingChar == 'n') {
+                    check_flag = 4;
+                } else if(check_flag > 3){
+                    if(incomingChar >= '0' && incomingChar <= '9'){
+                        StrAppend(check_buffer, incomingChar);
+                        delayMicroseconds(2);
+                        check_flag ++;
+                    }
                 }
             }
-        }
+        #endif
     }
 
-
-    // if (finished && check_flag) {
-    //     if (check_flag != 8) {
-    //         StrClear(buffer);
-    //     } else{
-    //         uint32_t len = (check_buffer[0]-'0')*1000 + (check_buffer[1]-'0')*100 
-    //                     + (check_buffer[2]-'0')*10 + (check_buffer[3]-'0')*1;
-    //         ws_debug("\tcheck_buffer: "); ws_debug(check_buffer);
-    //         ws_debug("\tcount: "); ws_debug(count);
-    //         ws_debug("\tlen: "); ws_debugln(len);
-    //         if(len != count) {
-    //             StrClear(buffer);
-    //         }
-    //     }     
-    // } 
+    #if LEN_CHECK == 1
+        if (finished && check_flag) {
+            if (check_flag != 8) {
+                StrClear(buffer);
+            } else{
+                uint32_t len = (check_buffer[0]-'0')*1000 + (check_buffer[1]-'0')*100 
+                            + (check_buffer[2]-'0')*10 + (check_buffer[3]-'0')*1;
+                ws_debug("\tcheck_buffer: "); ws_debug(check_buffer);
+                ws_debug("\tcount: "); ws_debug(count);
+                ws_debug("\tlen: "); ws_debug(len);
+                if(len != count) {
+                    StrClear(buffer);
+                    ws_debugln("\tfail");
+                } else {
+                    ws_debugln("\tpass");
+                }
+            }     
+        }
+    #endif
 }
 
 
