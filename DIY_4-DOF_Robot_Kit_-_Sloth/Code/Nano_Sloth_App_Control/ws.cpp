@@ -88,10 +88,9 @@ void WS::loop() {
     
     if (strlen(recvBuffer) != 0) {
         if (__on_receive__ != NULL) {
-            deserializeJson(recv_doc, recvBuffer);
-            // __on_receive__(recvBuffer, sendBuffer);
-            __on_receive__();
-
+                DeserializationError error = deserializeJson(recv_doc, recvBuffer);
+                if(error) ws_debugln("deserializeJson error");
+                __on_receive__();
         }
         this->sendData();
     }
@@ -111,7 +110,6 @@ void WS::readInto(char* buffer) {
     uint8_t check_flag = 0;
     
     while (DateSerial.available()) {
-        count += 1;
         if (count > WS_BUFFER_SIZE) {
             finished = true;
             break;
@@ -121,10 +119,8 @@ void WS::readInto(char* buffer) {
 
         if (incomingChar == '\n') {
             finished = true;
-            #if DEBUG == 1
-                Serial.print("recv: ");
-                Serial.println(buffer);
-            #endif
+            ws_debug("recv: ");
+            ws_debugln(buffer);
             break;
         } else if (incomingChar == '\r') {
             continue;
@@ -133,9 +129,11 @@ void WS::readInto(char* buffer) {
             StrAppend(buffer, '{');
             StrClear(check_buffer);
             check_flag = 1;
+            count = 1;
         } else if ((int)incomingChar > 31 && (int)incomingChar < 127) {
             StrAppend(buffer, incomingChar);
             delayMicroseconds(100); // This delay is necessary, wait for operation complete 
+            count ++;
         }
 
         if(check_flag && check_flag < 8){
@@ -145,26 +143,30 @@ void WS::readInto(char* buffer) {
                 check_flag = 3;
             } else if(check_flag == 3 and incomingChar == 'n') {
                 check_flag = 4;
-            } else {
-                StrAppend(check_buffer, incomingChar);
-                check_flag ++;
+            } else if(check_flag > 3){
+                if(incomingChar >= '0' && incomingChar <= '9'){
+                    StrAppend(check_buffer, incomingChar);
+                    check_flag ++;
+                }
             }
         }
     }
 
-    if (finished && check_flag != 8) {
-        finished = false;
-        StrClear(buffer);
-        StrClear(check_buffer);
-    } else{
-        uint32_t len = (check_buffer[0]-'0')*1000 + (check_buffer[1]-'0')*100 
-                    + (check_buffer[2]-'0')*10 + (check_buffer[3]-'0')*1
-        if(len != count) {
-            finished = false;
-            StrClear(buffer);
-            StrClear(check_buffer);            
-        }
-    }
+
+    // if (finished && check_flag) {
+    //     if (check_flag != 8) {
+    //         StrClear(buffer);
+    //     } else{
+    //         uint32_t len = (check_buffer[0]-'0')*1000 + (check_buffer[1]-'0')*100 
+    //                     + (check_buffer[2]-'0')*10 + (check_buffer[3]-'0')*1;
+    //         ws_debug("\tcheck_buffer: "); ws_debug(check_buffer);
+    //         ws_debug("\tcount: "); ws_debug(count);
+    //         ws_debug("\tlen: "); ws_debugln(len);
+    //         if(len != count) {
+    //             StrClear(buffer);
+    //         }
+    //     }     
+    // } 
 }
 
 

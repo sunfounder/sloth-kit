@@ -5,7 +5,7 @@
 #include <ArduinoJson.h>
 
 /* Enable debug */
-#define DEBUG 0
+#define WS_DEBUG 1
 
 /* Define built-in LED pin */
 #define BUILT_IN_LED 13
@@ -20,6 +20,14 @@
 #else
   #define DateSerial Serial
   #define DebugSerial Serial
+#endif
+
+#if WS_DEBUG == 1
+  #define ws_debug DebugSerial.print
+  #define ws_debugln DebugSerial.println
+#else
+  #define ws_debug(...) ;
+  #define ws_debugln(...) ;
 #endif
 
  /* Set SERIAL_TIMEOUT & WS_BUFFER_SIZE */
@@ -41,8 +49,8 @@
 
 class WS {
     public:
-        StaticJsonDocument<200> recv_doc;
-        StaticJsonDocument<200> send_doc;
+        StaticJsonDocument<400> recv_doc;
+        StaticJsonDocument<400> send_doc;
 
         void begin(
             const char* ssid, 
