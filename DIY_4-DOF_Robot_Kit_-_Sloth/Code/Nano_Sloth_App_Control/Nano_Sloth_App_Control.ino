@@ -1,25 +1,12 @@
 #include "VarSpeedServo.h"  //include the VarSpeedServo library
-#include <NewPing.h>        //include the NewPing library
 #include "ws.h"       
 #include "servos_control.h"
+#include "ultrasonic.h"
 #include "voice_control.h"
 
-#define VERSION "1.0.1"
+#define VERSION "1.0.2"
 
 #define TEST 0
-
-#define TRIGGER_PIN  4  // Arduino pin 4 tied to trigger pin on the ultrasonic sensor.
-#define ECHO_PIN     3  // Arduino pin 3 tied to echo pin on the ultrasonic sensor.
-#define MAX_DISTANCE 200 // Maximum distance we want to ping for (in centimeters). Maximum sensor distance is rated at 400-500cm.
-
-#define US_ROUNDTRIP_CM 57
-
-NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE); // NewPing setup of pins and maximum distance.
-
-extern VarSpeedServo RU;
-extern VarSpeedServo RL;
-extern VarSpeedServo LU;
-extern VarSpeedServo LL;
 
 extern int speed;
 extern int delay_step;
@@ -109,13 +96,13 @@ void loop()
 
 #if TEST == 0
     ws.loop();
-    unsigned int uS = sonar.ping();
-    distance = uS / US_ROUNDTRIP_CM;
-
-    // // delay(20);
-    // delay(5);
+    distance = ultrasonic_read();
 #else
     delay(50);
+    // distance = ultrasonic_read();
+    // Serial.print("distance: "); Serial.println(distance);
+    // delay(100);
+
     // servo_move(0, 0);
     // servo_move(1, 0);
     // servo_move(2, 0);
@@ -224,13 +211,11 @@ void keep_distance() {
  * websocket received data processing
  */
 void onReceive() {
-    // Serial.print("onRecv:");
-    // serializeJson(ws.recv_doc, Serial);
-    // Serial.print("\n");
+    Serial.print("onRecv:");
+    serializeJson(ws.recv_doc, Serial);
+    Serial.print("\n");
 
     /*-------- data to display --------*/
-    // ws.send_doc["D"][0] = 0;
-    // ws.send_doc["D"][1] = distance;
     ws.send_doc["I"] = distance;
 
     /*-------- remote control --------*/
@@ -248,36 +233,33 @@ void onReceive() {
 
     // ---  need to run block (would return) ---
 
-    // autonomous mode: "obstacle avoid" or "obstacle follow" or "keep diatance"
+#if 1   // autonomous mode: "obstacle avoid" or "obstacle follow" or "keep diatance"
     bool key_E = ws.recv_doc["E"];
     bool key_F = ws.recv_doc["F"];
     bool key_G = ws.recv_doc["G"];
     if (key_E) {
         autonomous_mode = true;
         avoid();
-        // Serial.println("obstacle avoid");
         return;
     } else if (key_F) {
         autonomous_mode = true;
         follow();
-        // Serial.println("obstacle follow");
         return;
     } else if (key_G) {
         autonomous_mode = true;
         keep_distance();
-        // Serial.println("keep distance");
         return;
     } else {
         if (autonomous_mode) {
             if (key_E != NULL && key_F != NULL && key_G != NULL) {
                 autonomous_mode = false;
                 last_obstacle_state = false;
-                
                 stand();
                 return;
             }
         }
     }
+#endif
 
     // ---  need to run non-blocking (would not return) ---
 
@@ -299,40 +281,33 @@ void onReceive() {
         }
     }
 
-    // move
+    // movement
     const char* key_K = ws.recv_doc["K"];
     if(key_K != NULL) {
         if (strcmp(key_K, "forward") == 0) {
-            // Serial.println("forward");
             forward();
         } else if (strcmp(key_K, "backward") == 0) {
-            // Serial.println("backward");
             backward();
         } else if (strcmp(key_K, "left") == 0) {
-            // Serial.println("left");
             turn_left();
         } else if (strcmp(key_K, "right") == 0) {
-            // Serial.println("right");
             turn_right();
         } else {
-            // Serial.println("stop");
             stop();
         }
     }
 
     // -------- actions --------
-    bool key_M = ws.recv_doc["M"];
-    bool key_N = ws.recv_doc["N"];
-    bool key_O = ws.recv_doc["O"];
-    bool key_P = ws.recv_doc["P"];
-    bool key_Q = ws.recv_doc["Q"];
-    bool key_R = ws.recv_doc["R"];
-    bool key_S = ws.recv_doc["S"];
-    bool key_T = ws.recv_doc["T"];
+    key_M = ws.recv_doc["M"];
+    key_N = ws.recv_doc["N"];
+    key_O = ws.recv_doc["O"];
+    key_P = ws.recv_doc["P"];
+    key_Q = ws.recv_doc["Q"];
+    key_R = ws.recv_doc["R"];
+    key_S = ws.recv_doc["S"];
+    key_T = ws.recv_doc["T"];
     
 
-    // dance T, NULL - dance
-    // dance F, NULL - stop
     if (key_M) {
         if (current_action != ACTION_STAND) {
             current_action = ACTION_STAND;
