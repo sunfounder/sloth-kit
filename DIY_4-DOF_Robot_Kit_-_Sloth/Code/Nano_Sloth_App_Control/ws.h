@@ -5,7 +5,7 @@
 #include <ArduinoJson.h>
 
 /* Enable debug */
-#define WS_DEBUG 1
+#define WS_DEBUG 0
 
 /* Enable Serial data length check*/
 #define LEN_CHECK 1
