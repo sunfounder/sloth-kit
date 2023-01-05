@@ -13,8 +13,8 @@ int i = 0;
 
 NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE); // NewPing setup of pins and maximum distance.
 
-#define SERVO
-//#define ULTRASONIC
+//#define SERVO
+#define ULTRASONIC
 
 void setup()
 {
