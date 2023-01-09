@@ -18,9 +18,10 @@
 # -- Project information -----------------------------------------------------
 
 import sphinx_rtd_theme
+import time
 
 project = 'SunFounder DIY 4-DOF Robot Kit'
-copyright = '2022, sunfounder'
+copyright = f'{time.localtime().tm_year}, SunFounder'
 author = 'sunfounder'
 
 # The full version, including alpha/beta/rc tags

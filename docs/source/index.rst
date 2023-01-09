@@ -3,7 +3,8 @@ Sloth - SunFounder DIY 4-DOF Robot Kit
 =======================================
 
 .. image:: img/A-1.png
-    :width: 800
+    :width: 400
+    :align: center
 
 This cute learning kit focuses on the popular open source platform Arduino. 
 You can learn the knowledge of the Arduino servo and ultrasonic ranging module by applying this kit.
@@ -16,16 +17,16 @@ and the HC-SR04 ultrasonic ranging module.
 Sloth can move forward and detect the range to make a turn when encountering an obstacle. In addition, when learning to program, you can also have the fun to build a pretty cool bio-robot by yourself.
 
 .. toctree::
-   :maxdepth: 2 
-   :caption: Contents:
+    :maxdepth: 2 
+    :caption: Contents:
 
-   component
-   download_the_code
-   install_arduino
-   test_module
-   assembly
-   example
-   q&a
+    component
+    download_the_code
+    install_arduino
+    test_module
+    assembly
+    example
+    q&a
 
 
 Summary

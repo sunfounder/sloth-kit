@@ -27,13 +27,13 @@ Dancing
 
 In this code, we write the basic actions of  sloth and compose them into a dance. 
 Open the program ``Dancing.ino`` under the path of ``DIY_4-DOF_Robot_Kit_-_Sloth\Code\Dancing``. 
-Go to Line 196, select the RUN function by rectifying ``#define``.
+Go to Line 196, select the ``RUN`` function by rectifying ``#define``.
 
 .. image:: img/example_3.png
 
 After burning successfully, unplug the USB cable and press the power button on the servo control board. You will see the robot dancing. 
 
-.. note:: The program also needs to be calibrated in the same way as Servo CALIBRATION Test in Assembly. If there has been a precise calibration, you can modify the parameters in line 22 directly.
+.. note:: The program also needs to be calibrated in the same way as **Servo CALIBRATION Test** in **Assembly**. If there has been a precise calibration, you can modify the parameters in line 22 directly.
 
 .. image:: img/example_4.png
 

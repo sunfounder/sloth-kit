@@ -1,51 +1,91 @@
 Install Arduino IDE and Add Libraries
 =====================================
 
-**Arduino**
+The Arduino IDE, known as Arduino Integrated Development Environment, provides all the software support needed to complete an Arduino project. It is a programming software specifically designed for Arduino, provided by the Arduino team, that allows us to write programs and upload them to the Arduino board.
+The Arduino IDE 2.0 is an open-source project. It is a big step from its sturdy predecessor, Arduino IDE 1.x, and comes with revamped UI, improved board & library manager, debugger, auto complete feature and much more.
+In this tutorial, we will show how to download and install the Arduino IDE 2.0 on your Windows, Mac, or Linux computer.
 
-Arduino is an open source platform that applies simple software and hardware. 
-You can get it in a short even when you know little of it. 
-It provides an integrated development environment (IDE) for code editing and compiling, 
-compatible with multiple control boards. So you can just download the Arduino IDE, 
-upload the sketches (i.e. the code files) to the board, 
-and then you can see experimental phenomena. 
-For more information, refer to https://www.arduino.cc/. 
+Download Arduino IDE
+---------------------------
 
-
-
-
-**Install Arduino IDE**
-
-The code in this kit is written based on Arduino, 
-so you need to install the IDE first. Skip it if you have done this.
-Now go to the Arduino website: https://www.arduino.cc/, 
-find the one that suits your operation system and click to download.
+The code in this kit is written based on Arduino, so you need to install the IDE first. Skip it if you have done this.
+Now go to the Arduino website: https://www.arduino.cc/en/software, find the one that suits your operation system and click to download.
 
 .. image:: img/install_arduino_1.png
 
-There are two versions of Arduino for Windows: Installer or ZIP file. You're recommended to download the former. Just download the package, and run the executable file to start installation. It will download the driver needed to run Arduino IDE. After downloading, follow the prompts to install. 
-After installing, you will see Arduino icon on your desk and double click to open it. 
+Installation
+------------------
+* Windows - Win 10 and newer, 64 bits
+* Linux - 64 bits
+* Mac OS X - Version 10.14: “Mojave” or newer, 64 bits
 
-.. image:: img/install_arduino_2.png
+Windows
+^^^^^^^^^^^^^^^
+
+#. Double click the ``arduino-ide_xxxx.exe`` file to run the downloaded file. Read the License Agreement and agree it.
+
+    .. image:: img/install_ide_windows1.png
+        :align: center
 
 
-**Add Libraries**
+
+#. Choose installation options.
+
+    .. image:: img/install_ide_windows2.png
+        :align: center
+
+#. Choose install location. It is recommended that the software be installed on a drive other than the system drive.
+
+    .. image:: img/install_ide_windows3.png
+        :align: center
+
+#. Then Finish.
+
+    .. image:: img/install_ide_windows4.png
+        :align: center
+
+Mac OS X
+^^^^^^^^^^
+
+
+Double click on the downloaded ``arduino_ide_xxxx.dmg`` file and follow the instructions to copy the Arduino IDE.app to the **Applications** folder, you will see the Arduino IDE installed successfully after a few seconds.
+
+.. image:: img/install_ide_macosx.png
+    :align: center
+
+Linux
+^^^^^^^^^^
+
+For the tutorial on installing the Arduino IDE 2.0 on a Linux system, please refer to: 
+https://docs.arduino.cc/software/ide-v2/tutorials/getting-started/ide-v2-downloading-and-installing#linux
+
+Open the IDE
+------------------
+
+When you first open Arduino IDE 2.0, it automatically installs the Arduino AVR Boards, built-in libraries, and other required files.
+
+.. image:: img/open_ide.png
+    :align: center
+
+In addition, your firewall or security center may pop up a few times asking you if you want to install some device driver. Please install all of them.
+
+.. image:: img/install_driver.png
+    :align: center
+
+Now your Arduino IDE is ready!
+
+.. note::
+    In the event that some installations didn’t work due to network issues or other reasons, you can reopen the Arduino IDE and it will finish the rest of the installation. 
+
+Add Libraries
+------------------
 
 You will get the following error when trying to run the code that contains the ultrasonic module: 
-
-`NewPing.h: no such file or directory`
+    
+    NewPing.h: no such file or directory
 
 Therefore, it needs to be manually added. Here are the steps.
-Open Arduino IDE, **select Sketch -> Included Library -> Add .ZIP Library**.
+Open the Arduino IDE, click on the **Library Manager** icon to open it, search for ``newping`` and click on **INSTALL** in the options that appear. Wait for the prompt to complete the installation and you're done!
 
-
-.. image:: img/add_lib_1.png
-
-Enter the path **DIY_4-DOF_Robot_Kit_-_Sloth\Library**  and select to open NewPing.
-
-.. image:: img/add_lib_2.png
-
-Then you will see “Library added to your libraries”, indicating the library has been included successfully.
-
-.. image:: img/add_lib_3.png
-
+.. image:: img/install_library.png
+    :align: center
