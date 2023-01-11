@@ -14,7 +14,7 @@
 #define LOW_LEFT_SERVO 12
 
 /*Servos initial angle calibration value*/
-const int8_t array_cal[SERVOS_NUM] PROGMEM = {95, 90, 90, 92};  // RU, RL, LU, LL
+const int8_t array_cal[SERVOS_NUM] PROGMEM = {90, 90, 99, 85};  // RU, RL, LU, LL
 
 /*Define various action steps
 The value represents the rotation angle of the servo based on the initial position
@@ -40,16 +40,6 @@ const int8_t array_backward[6][SERVOS_NUM] PROGMEM = {
 };
 
 const int8_t array_turn_left[6][SERVOS_NUM] PROGMEM = {
-    {0, 40, 0, 20},
-    {0, 40, 20, 20},
-    {0, 0, 20, 0},
-
-    {0, -20, 0, -40},
-    {0, -20, -20, -40},
-    {0, 0, -20, 0},
-};
-
-const int8_t array_turn_right[6][SERVOS_NUM] PROGMEM = {
     {0, -20, 0, -40},
     {-20, -20, 0, -40},
     {-20, 0, 0, 0},
@@ -57,6 +47,16 @@ const int8_t array_turn_right[6][SERVOS_NUM] PROGMEM = {
     {0, 40, 0, 20},
     {20, 40, 0, 20},
     {20, 0, 0, 0},
+};
+
+const int8_t array_turn_right[6][SERVOS_NUM] PROGMEM = {
+    {0, 40, 0, 20},
+    {0, 40, 20, 20},
+    {0, 0, 20, 0},
+
+    {0, -20, 0, -40},
+    {0, -20, -20, -40},
+    {0, 0, -20, 0},
 };
 
 const int8_t array_stand[1][SERVOS_NUM] PROGMEM = {

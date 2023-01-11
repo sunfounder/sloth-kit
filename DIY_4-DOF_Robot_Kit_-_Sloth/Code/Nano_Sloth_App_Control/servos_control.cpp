@@ -98,8 +98,6 @@ void fall_left() {do_action(1, &array_fall_left);}
 void fall_right() {do_action(1, &array_fall_right);}
 void go_up_and_down() {do_action(2, &array_go_up_and_down);}
 
-// int8_t dance_step = 0;
-
 void action_step_reset() {
     action_step = 0;
 }
@@ -113,7 +111,6 @@ void do_fuc_action(uint8_t max_step, uint16_t* action_arry_addr) {
     }
     Func func_addr = pgm_read_word(&action_arry_addr[action_step]);
     func_addr();
-    // Serial.print(action_step);Serial.print(": 0x");Serial.println(int(func_addr), HEX);
 }
 
 void do_fuc_action_block(uint8_t max_step, uint16_t* action_arry_addr) {
@@ -130,8 +127,3 @@ void shy() {do_fuc_action(ARRY_SHY_LENGTH, array_shy);}
 void confuse() {do_fuc_action(ARRY_CONFUSE_LENGTH, array_confuse);}
 void fear() {do_fuc_action(ARRY_FEAR_LENGTH, array_fear);}
 
-// void happy() {do_fuc_action_block(ARRY_HAPPY_LENGTH, array_happy);}
-// void sad() {do_fuc_action_block(ARRY_SAD_LENGTH, array_sad);}
-// void shy() {do_fuc_action_block(ARRY_SHY_LENGTH, array_shy);}
-// void confuse() {do_fuc_action_block(ARRY_CONFUSE_LENGTH, array_confuse);}
-// void fear() {do_fuc_action_block(ARRY_FEAR_LENGTH, array_fear);}

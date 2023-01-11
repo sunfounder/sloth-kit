@@ -7,7 +7,9 @@
 #define VERSION "1.0.2"
 
 #define TEST 0
-
+#define PRINT_WS_RECV 1 // 1, enable print WS receive
+#define VOICE_CONTROL_STEP 3
+uint8_t voice_step = VOICE_CONTROL_STEP;
 extern int speed;
 extern int delay_step;
 
@@ -26,8 +28,8 @@ uint8_t fall_left_or_right = 0; // 0:left, 1:right
  
 /** Configure Wifi mode, ssid, password aand ws port*/
 #define WIFI_MODE WIFI_MODE_STA
-#define SSID "xiaoming"
-#define PASSWORD "sunfounder"
+#define SSID "Your SSID"
+#define PASSWORD "Your password"
 #define PORT "8765"
 
 
@@ -48,13 +50,12 @@ float distance = 0;
 
 
 uint8_t current_action = ACTION_NONE;
+uint8_t last_action = ACTION_NONE;
 bool is_action = false;
 
 bool key_E = false;
 bool key_F = false;
 bool key_G = false;
-
-bool key_D = false;
 
 bool key_M = false;
 bool key_N = false;
@@ -211,9 +212,11 @@ void keep_distance() {
  * websocket received data processing
  */
 void onReceive() {
-    Serial.print("onRecv:");
-    serializeJson(ws.recv_doc, Serial);
-    Serial.print("\n");
+    #if PRINT_WS_RECV == 1
+        Serial.print("onRecv:");
+        serializeJson(ws.recv_doc, Serial);
+        Serial.print("\n");
+    #endif
 
     /*-------- data to display --------*/
     ws.send_doc["I"] = distance;
@@ -234,9 +237,11 @@ void onReceive() {
     // ---  need to run block (would return) ---
 
 #if 1   // autonomous mode: "obstacle avoid" or "obstacle follow" or "keep diatance"
-    bool key_E = ws.recv_doc["E"];
-    bool key_F = ws.recv_doc["F"];
-    bool key_G = ws.recv_doc["G"];
+     
+    if (!ws.recv_doc["E"].isNull()) key_E = ws.recv_doc["E"];
+    if (!ws.recv_doc["F"].isNull()) key_F = ws.recv_doc["F"];
+    if (!ws.recv_doc["G"].isNull()) key_G = ws.recv_doc["G"];
+
     if (key_E) {
         autonomous_mode = true;
         avoid();
@@ -262,25 +267,6 @@ void onReceive() {
 #endif
 
     // ---  need to run non-blocking (would not return) ---
-
-    // voice control
-    const char* key_J = ws.recv_doc["J"];
-    if (key_J != NULL) {
-        int8_t code  = text_2_cmd_code(key_J);
-        if(code != -1) {
-            voice_current_action = code;
-        }
-    }
-    
-    if (voice_current_action != -1) {
-        if (voice_current_action == 0) {
-            stop();
-            voice_current_action = -1;
-        } else {
-            cmd_fuc_table[voice_current_action]();
-        }
-    }
-
     // movement
     const char* key_K = ws.recv_doc["K"];
     if(key_K != NULL) {
@@ -297,78 +283,100 @@ void onReceive() {
         }
     }
 
-    // -------- actions --------
-    key_M = ws.recv_doc["M"];
-    key_N = ws.recv_doc["N"];
-    key_O = ws.recv_doc["O"];
-    key_P = ws.recv_doc["P"];
-    key_Q = ws.recv_doc["Q"];
-    key_R = ws.recv_doc["R"];
-    key_S = ws.recv_doc["S"];
-    key_T = ws.recv_doc["T"];
-    
+    // ---------------- actions ----------------
+    if(!ws.recv_doc["M"].isNull()) key_M = ws.recv_doc["M"];
+    if(!ws.recv_doc["N"].isNull()) key_N = ws.recv_doc["N"];
+    if(!ws.recv_doc["O"].isNull()) key_O = ws.recv_doc["O"];
+    if(!ws.recv_doc["P"].isNull()) key_P = ws.recv_doc["P"];
+    if(!ws.recv_doc["Q"].isNull()) key_Q = ws.recv_doc["Q"];
+    if(!ws.recv_doc["R"].isNull()) key_R = ws.recv_doc["R"];
+    if(!ws.recv_doc["S"].isNull()) key_S = ws.recv_doc["S"];
+    if(!ws.recv_doc["T"].isNull()) key_T = ws.recv_doc["T"];
 
-    if (key_M) {
-        if (current_action != ACTION_STAND) {
-            current_action = ACTION_STAND;
-            action_step_reset();
-        }
-        voice_current_action = -1;
-        stand();
-    } else if (key_N) {
-        if (current_action != ACTION_HAPPY) {
-            current_action = ACTION_HAPPY;
-            action_step_reset();
-        }
-        happy();
-    } else if (key_O) {
-        if (current_action != ACTION_SAD) {
-            current_action = ACTION_SAD;
-            action_step_reset();
-        }       
-        sad();
-    } else if (key_P) {
-        if (current_action != ACTION_SHY) {
-            current_action = ACTION_SHY;
-            action_step_reset();
-        }   
-        shy();
-    } else if (key_Q) {
-        if (current_action != ACTION_DANCE) {
-            current_action = ACTION_DANCE;
-            action_step_reset();
-        }
-        dance();
-    } else if (key_R) {
-        if (current_action != ACTION_FALL) {
-            current_action = ACTION_FALL;
-            action_step_reset();
+    if(key_M) current_action = ACTION_STAND;
+    else if(key_N) current_action = ACTION_HAPPY;
+    else if(key_O) current_action = ACTION_SAD;
+    else if(key_P) current_action = ACTION_SHY;
+    else if(key_Q) current_action = ACTION_DANCE;
+    else if(key_R) current_action = ACTION_FALL;
+    else if(key_S) current_action = ACTION_CONFUSE;
+    else if(key_T) current_action = ACTION_FEAR;
+    else {
+        current_action = ACTION_NONE;
+    }
 
+    if(last_action != current_action) {
+        action_step_reset();
+        last_action = current_action;
+        if(current_action == ACTION_FALL) {
             uint32_t t = millis();
             if (t&1) fall_left_or_right = 1;
-            else fall_left_or_right = 0;
+            else fall_left_or_right = 0;           
+        }
+    }
 
-            // fall_left_or_right = !fall_left_or_right;
-        }
-        if (fall_left_or_right) fall_right();
-        else fall_left();
-        // fall_left();
-    } else if (key_S) {
-        if (current_action != ACTION_CONFUSE) {
-            current_action = ACTION_CONFUSE;
-            action_step_reset();
-        }
-        confuse();
-    } else if (key_T) {
-        if (current_action != ACTION_FEAR) {
-            current_action = ACTION_FEAR;
-            action_step_reset();
-        }
-        fear();
-    } 
-    // else {
-    //     action_step_reset();
+    switch(current_action) {
+        case ACTION_STAND:
+            stand();
+            break;
+        case ACTION_HAPPY:
+            happy();
+            break;
+        case ACTION_SAD:
+            sad();
+            break;
+        case ACTION_SHY:
+            shy();
+            break;
+        case ACTION_DANCE:
+            dance();
+            break;
+        case ACTION_FALL:
+            if (fall_left_or_right) fall_right();
+            else fall_left();
+            break;
+        case ACTION_CONFUSE:
+            confuse();
+            break;
+        case ACTION_FEAR:
+            fear();
+            break;
+        default:
+            break;
+    }
+
+
+    Serial.print("current_action");Serial.println(current_action);
+    if(current_action != ACTION_NONE) {
+        voice_current_action = -1;
+        return;
+    }
+
+    // voice control
+    // const char* key_J = ws.recv_doc["J"];
+    // int8_t code = -1;
+    // if (key_J != NULL) {
+    //     code  = text_2_cmd_code(key_J);
     // }
+
+    bool key_J = ws.recv_doc["J"];
+    int8_t code = -1;
+    if (key_J) {
+        code  = 1;
+        Serial.println("");
+    }
+
+    if(code != -1) {
+        voice_current_action = code;
+        voice_step = VOICE_CONTROL_STEP;
+        cmd_fuc_table[voice_current_action]();
+        voice_step --;
+    } else {
+        if (voice_current_action != -1 && voice_step > 0) {
+            cmd_fuc_table[voice_current_action]();
+            voice_step --;
+        }
+    }
 
 }
 
