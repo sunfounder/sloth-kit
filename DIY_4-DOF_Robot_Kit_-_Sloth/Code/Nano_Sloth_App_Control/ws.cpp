@@ -1,7 +1,7 @@
 #include "ws.h"
 #include "string.h"
 
-char recvBuffer[WS_BUFFER_SIZE + strlen(WS_HEADER)];
+// char recvBuffer[WS_BUFFER_SIZE + strlen(WS_HEADER)];
 
 /**
 *  functions for manipulating string 
@@ -41,17 +41,11 @@ void WS::begin(const char* ssid, const char* password, const char* wifi_mode, co
     Serial.println("reset ESP8266 module ...");
     this->set("RESET");
 
-    if(send_doc["Name"] == NULL || send_doc["Type"] == NULL) {
-        Serial.println("Please set the Name and TYPE at first.");
-        while (1);
-    }
-
-    // this->set("NAME", send_doc["Name"]);
-    // this->set("TYPE", send_doc["Type"]);
     this->set("SSID", ssid);
     this->set("PSK",  password);
     this->set("MODE", wifi_mode);
     this->set("PORT", ws_port);
+    this->set("SMD", "1");
 
     this->get("START", ip);
 
@@ -83,14 +77,23 @@ void WS::setOnReceived(void (*func)()) { __on_receive__ = func; }
  */
 
 void WS::loop() {
-    StrClear(recvBuffer);
-    this->readInto(recvBuffer);
-    
-    if (strlen(recvBuffer) != 0) {
-        if (__on_receive__ != NULL) {
-                DeserializationError error = deserializeJson(recv_doc, recvBuffer);
-                if(error) ws_debugln("deserializeJson error");
+    // StrClear(recvBuffer);
+    StrClear(readBuffer);
+    this->readInto(readBuffer);
+    int len = strlen(readBuffer);
+    if (len != 0) {
+        // ws_debug("recvBuffer: ");ws_debugln(recvBuffer);
+        Serial.print("readBuffer: ");Serial.println(readBuffer);
+        if (IsStartWith(readBuffer, WS_HEADER) and __on_receive__ != NULL) {
+            this->subString(readBuffer, strlen(WS_HEADER));
+            int lenCheck = getIntOf(readBuffer, REGION_LEN);
+            Serial.print("len:");Serial.println(len);
+            Serial.print("lenCheck:");Serial.println(lenCheck);
+            if (lenCheck == len) {
+                StrClear(recvBuffer);
+                strcpy(recvBuffer, readBuffer);
                 __on_receive__();
+            } 
         }
         this->sendData();
     }
@@ -106,9 +109,7 @@ void WS::readInto(char* buffer) {
     char incomingChar;
     StrClear(buffer);
     uint32_t count = 0;
-    char check_buffer[5]; // Attention, Length must be greater than 5 to avoid conflict with other data
-    uint8_t check_flag = 0;
-    
+
     while (DateSerial.available()) {
         if (count > WS_BUFFER_SIZE) {
             finished = true;
@@ -124,55 +125,14 @@ void WS::readInto(char* buffer) {
             break;
         } else if (incomingChar == '\r') {
             continue;
-        } else if (incomingChar == '{') {
-            StrClear(buffer);
-            StrAppend(buffer, '{');
-            StrClear(check_buffer);
-            check_flag = 1;
-            count = 1;
         } else if ((int)incomingChar > 31 && (int)incomingChar < 127) {
+            // Serial.print(incomingChar);
             StrAppend(buffer, incomingChar);
             delayMicroseconds(100); // This delay is necessary, wait for operation complete 
             count ++;
         }
-        #if LEN_CHECK == 1
-            if(check_flag && check_flag < 8){
-                if(check_flag == 1 && incomingChar == 'L') {
-                    check_flag = 2;
-                } else if(check_flag == 2 && incomingChar == 'e') {
-                    check_flag = 3;
-                } else if(check_flag == 3 && incomingChar == 'n') {
-                    check_flag = 4;
-                } else if(check_flag > 3){
-                    if(incomingChar >= '0' && incomingChar <= '9'){
-                        StrAppend(check_buffer, incomingChar);
-                        delayMicroseconds(2);
-                        check_flag ++;
-                    }
-                }
-            }
-        #endif
     }
 
-    #if LEN_CHECK == 1
-        if (finished && check_flag) {
-            if (check_flag != 8) {
-                StrClear(buffer);
-            } else{
-                uint32_t len = (check_buffer[0]-'0')*1000 + (check_buffer[1]-'0')*100 
-                            + (check_buffer[2]-'0')*10 + (check_buffer[3]-'0')*1;
-                ws_debug("\tcheck_buffer: "); ws_debug(check_buffer);
-                ws_debug("\tcount: "); ws_debug(count);
-                ws_debug("\tlen: "); ws_debug(len);
-                if(len != count) {
-                    StrClear(buffer);
-                    ws_debugln("\tfail");
-                } else {
-                    ws_debugln("\tpass");
-                }
-            }     
-        }
-    #endif
 }
 
 
@@ -199,6 +159,7 @@ void WS::command(const char* command, const char* value, char* result) {
             this->subString(result, strlen(OK_FLAG) + 1); // Add 1 for Space
             return;
         }
+        delay(1);
     }
 }
 
@@ -208,7 +169,7 @@ void WS::command(const char* command, const char* value, char* result) {
  * @param command command keyword
  */
 void WS::set(const char* command) {
-    char result[10];
+    char result[64];
     this->command(command, "", result);
 }
 
@@ -229,7 +190,7 @@ void WS::set(const char* command) {
  * 
  */
 void WS::set(const char* command, const char* value) {
-    char result[10];
+    char result[64];
     this->command(command, value, result);
 }
 
@@ -260,6 +221,16 @@ void WS::get(const char* command, char* result) {
  */
 void WS::get(const char* command, const char* value, char* result) {
   this->command(command, value, result);
+}
+
+/** 
+ * @brief Serial port sends data, automatically adds header (WS_HEADER)
+ *         
+ * @param sendBuffer  Pointer to the character value of the data buffer to be sent
+ */
+void WS::sendData(char* sendBuffer) {
+  DateSerial.print(F(WS_HEADER));
+  DateSerial.println(sendBuffer);
 }
 
 /** 
@@ -305,3 +276,143 @@ void WS::subString(char* str, int16_t start, int16_t end) {
     }
   }
 }
+
+/* -------------------------------  get key value ---------------------------------- */
+
+/** 
+ * @brief Split the string by a cdivider,
+ *         and return characters of the selected index
+ *
+ * @param str string pointer to be split  
+ * @param index which index do you wish to return
+ * @param result char array pointer to hold the result
+ * @param divider
+ */
+void WS::getStrOf(char* str, uint8_t index, char* result, char divider) {
+    uint8_t start, end;
+    uint8_t length = strlen(str);
+    uint8_t i, j;
+    // Get start index
+    if (index == 0) {
+        start = 0;
+    } else {
+        for (start = 0, j = 1; start < length; start++) {
+            if (str[start] == divider) {
+                if (index == j) {
+                start++;
+                break;
+                }
+                j++;
+            }
+        }
+    }
+    // Get end index
+    for (end = start, j = 0; end < length; end++) {
+        if (str[end] == divider) {
+            break;
+        }
+    }
+    // Copy result
+    for (i = start, j = 0; i < end; i++, j++) {
+        result[j] = str[i];
+    }
+    result[j] = '\0';
+}
+
+/** 
+ * @brief Split the string by a cdivider,
+ *         and return characters of the selected index.
+ *         Further, the content is converted to int type.
+ *
+ * @param buf string pointer to be split  
+ * @param index which index do you wish to return
+ * @param divider
+ * 
+ * @return int16_t, int value
+ */
+int16_t WS::getIntOf(char* buf, uint8_t index, char divider=';') {
+    int16_t result;
+    char strResult[6];
+    getStrOf(buf, index, strResult, divider);
+    result = String(strResult).toInt();
+    return result;   
+}
+
+bool WS::getBoolOf(char* str, uint8_t index) {
+    char strResult[5];
+    getStrOf(str, index, strResult, ';');
+    return String(strResult).toInt(); 
+}
+
+double WS::getDoubleOf(char* str, uint8_t index) {
+  double result;
+  char strResult[20];
+  getStrOf(str, index, strResult, ';');
+  result = String(strResult).toDouble();
+  return result;   
+}
+
+int16_t WS::getSlider(uint8_t region) {
+  int16_t value = getIntOf(recvBuffer, region);
+  return value;
+}
+
+bool WS::getButton(uint8_t region) {
+  bool value = getBoolOf(recvBuffer, region);
+  return value;
+}
+
+bool WS::getSwitch(uint8_t region) {
+  bool value = getBoolOf(recvBuffer, region);
+  return value;
+}
+
+bool WS::getMusicSwitch(uint8_t region) {
+  bool value = getBoolOf(recvBuffer, region);
+  return value;
+}
+
+int16_t WS::getJoystick(uint8_t region, uint8_t axis) {
+  char valueStr[10];
+  char xStr[4];
+  char yStr[4];
+  int16_t x, y, angle, radius;
+  getStrOf(recvBuffer, region, valueStr, ';');
+  x = getIntOf(valueStr, 0, ',');
+  y = getIntOf(valueStr, 1, ',');
+  angle = atan2(x, y) * 180.0 / PI;
+  radius = sqrt(y * y + x * x);
+  switch (axis) {
+    case JOYSTICK_X: return x;
+    case JOYSTICK_Y: return y;
+    case JOYSTICK_ANGLE: return angle;
+    case JOYSTICK_RADIUS: return radius;
+    default: return 0;
+  }
+}
+
+uint8_t WS::getDPad(uint8_t region) {
+  char value[10];
+  getStrOf(recvBuffer, region, value, ';');
+  uint8_t result;
+  if ((String)value == (String)"forward") result = DPAD_FORWARD;
+  else if ((String)value == (String)"backward") result = DPAD_BACKWARD;
+  else if ((String)value == (String)"left") result = DPAD_LEFT;
+  else if ((String)value == (String)"right") result = DPAD_RIGHT;
+  else if ((String)value == (String)"stop") result = DPAD_STOP;
+  return result;
+}
+
+int16_t WS::getThrottle(uint8_t region) {
+  int16_t value = getIntOf(recvBuffer, region);
+  return value;
+}
+
+void WS::getGreyscale(uint8_t region, char* result);
+
+void WS::getSpeech(uint8_t region, char* result) {
+  getStrOf(recvBuffer, region, result, ';');
+
+}
+
+

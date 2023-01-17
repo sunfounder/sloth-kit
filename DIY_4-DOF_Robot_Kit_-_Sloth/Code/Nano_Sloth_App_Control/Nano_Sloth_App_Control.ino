@@ -1,10 +1,33 @@
+/*******************************************************************
+  This is the program for Ardunio Nano. The upper machine esp01s (or other)
+  establishes websockets service to communicate with APP Sunfounder Controller,
+  and returns data from the serial port to Nano, so as to complete the 
+  remote control of the robot Sloth.
+
+  Dependent libraries:
+    - ArduinoJson
+    - NewPing
+
+  Board tools:
+    - Ardunio Nano
+
+  Version: 1.1.2
+    -- https://github.com/sunfounder/sloth-kit
+
+  Author: Sunfounder
+  Website: http://www.sunfounder.com
+           https://docs.sunfounder.com
+ *******************************************************************/
+#include <Arduino.h>
+#include "string.h"
+
 #include "VarSpeedServo.h"  //include the VarSpeedServo library
 #include "ws.h"       
 #include "servos_control.h"
 #include "ultrasonic.h"
 #include "voice_control.h"
 
-#define VERSION "1.0.2"
+#define VERSION "1.1.2"
 
 #define TEST 0
 #define PRINT_WS_RECV 1 // 1, enable print WS receive
@@ -12,8 +35,9 @@
 uint8_t voice_step = VOICE_CONTROL_STEP;
 extern int speed;
 extern int delay_step;
-
 bool autonomous_mode = false;
+
+bool is_stand = false;
 
 #define AVOID_DISTANCE 10
 #define FOLLOW_DISTANCE 20
@@ -66,7 +90,6 @@ bool key_R = false;
 bool key_S = false;
 bool key_T = false;
 
-char* voice_text_buffer[20];
 int8_t voice_current_action = -1;
 
 
@@ -108,7 +131,16 @@ void loop()
     // servo_move(1, 0);
     // servo_move(2, 0);
     // servo_move(3, 0);
+    int8_t custom_step[][4] = {
+        {0, 40, 0, 15},
+        {30, 40, 30, 15},
+        {30, 0, 30, 0},
 
+        {0, -15, 0, -40},
+        {-30, -15, -30, -40},
+        {-30, 0, -30, 0},
+    };
+    do_action2(6, &custom_step[0][0]);
     // forward();
     // backward();
     // turn_left();
@@ -163,6 +195,7 @@ void avoid() {
     if(distance <= AVOID_DISTANCE) {
         if (last_obstacle_state == false) {
             hook();
+            delay(50);
             stand();
         }
         last_obstacle_state = true;
@@ -180,6 +213,7 @@ void follow() {
     } else if(distance < FOLLOW_DISTANCE) {
         if (last_obstacle_state == false) {
             hook();
+            delay(50);
             stand();
         }
         last_obstacle_state = true;
@@ -194,6 +228,7 @@ void keep_distance() {
     if (distance < KEEP_DISTANCE_DISTANCE) {
         if (last_obstacle_state == false) {
             hook();
+            delay(50);
             stand();
         }
         last_obstacle_state = true;
@@ -214,33 +249,25 @@ void keep_distance() {
 void onReceive() {
     #if PRINT_WS_RECV == 1
         Serial.print("onRecv:");
-        serializeJson(ws.recv_doc, Serial);
-        Serial.print("\n");
+        Serial.println(ws.recvBuffer);
     #endif
 
-    /*-------- data to display --------*/
+    /*---------------- data to display ----------------*/
     ws.send_doc["I"] = distance;
 
-    /*-------- remote control --------*/
+    /*---------------- remote control ----------------*/
     // speed
-    // int key_A = ws.recv_doc["A"];
-    // if(key_A != NULL) {
-    //     // speed = map(key_A, 0, 100, 0, 255);
-    //     speed = key_A;
-    // }
-    // // delay_step
-    // int key_B = ws.recv_doc["B"];
-    // if(key_B != NULL) {
-    //     delay_step = key_B;
-    // }
+    int key_A = ws.getSlider(REGION_A);
+    speed = key_A;
+    // delay_step
+    int key_B = ws.getSlider(REGION_B);
+    delay_step = key_B;
 
-    // ---  need to run block (would return) ---
-
-#if 1   // autonomous mode: "obstacle avoid" or "obstacle follow" or "keep diatance"
-     
-    if (!ws.recv_doc["E"].isNull()) key_E = ws.recv_doc["E"];
-    if (!ws.recv_doc["F"].isNull()) key_F = ws.recv_doc["F"];
-    if (!ws.recv_doc["G"].isNull()) key_G = ws.recv_doc["G"];
+    /*---------------- autonomous mode ----------------*/
+    //"obstacle avoid" , "obstacle follow" , "keep diatance"
+    key_E = ws.getSwitch(REGION_E);
+    key_F = ws.getSwitch(REGION_F);
+    key_G = ws.getSwitch(REGION_G);
 
     if (key_E) {
         autonomous_mode = true;
@@ -264,35 +291,41 @@ void onReceive() {
             }
         }
     }
-#endif
 
-    // ---  need to run non-blocking (would not return) ---
-    // movement
-    const char* key_K = ws.recv_doc["K"];
-    if(key_K != NULL) {
-        if (strcmp(key_K, "forward") == 0) {
-            forward();
-        } else if (strcmp(key_K, "backward") == 0) {
-            backward();
-        } else if (strcmp(key_K, "left") == 0) {
-            turn_left();
-        } else if (strcmp(key_K, "right") == 0) {
-            turn_right();
-        } else {
+    /*-------------------- movement ------------------*/
+    uint8_t key_K = ws.getDPad(REGION_K);
+    // If there is a movement, it will return after execution, 
+    // and "action control" and "voice control" will not be executed
+    switch (key_K) {
+        case DPAD_STOP:
             stop();
-        }
+            break;
+        case DPAD_FORWARD:
+            forward();
+            return;
+        case DPAD_BACKWARD:
+            backward();
+            return;
+        case DPAD_LEFT:
+            turn_left();
+            return;
+        case DPAD_RIGHT:
+            turn_right();
+            return;
+        default:
+            break;
     }
 
-    // ---------------- actions ----------------
-    if(!ws.recv_doc["M"].isNull()) key_M = ws.recv_doc["M"];
-    if(!ws.recv_doc["N"].isNull()) key_N = ws.recv_doc["N"];
-    if(!ws.recv_doc["O"].isNull()) key_O = ws.recv_doc["O"];
-    if(!ws.recv_doc["P"].isNull()) key_P = ws.recv_doc["P"];
-    if(!ws.recv_doc["Q"].isNull()) key_Q = ws.recv_doc["Q"];
-    if(!ws.recv_doc["R"].isNull()) key_R = ws.recv_doc["R"];
-    if(!ws.recv_doc["S"].isNull()) key_S = ws.recv_doc["S"];
-    if(!ws.recv_doc["T"].isNull()) key_T = ws.recv_doc["T"];
-
+    /*-------------------- actions control ------------------*/
+    key_M = ws.getMusicSwitch(REGION_M);
+    key_N = ws.getMusicSwitch(REGION_N);
+    key_O = ws.getMusicSwitch(REGION_O); 
+    key_P = ws.getMusicSwitch(REGION_P);
+    key_Q = ws.getMusicSwitch(REGION_Q);
+    key_R = ws.getMusicSwitch(REGION_R);
+    key_S = ws.getMusicSwitch(REGION_S);
+    key_T = ws.getMusicSwitch(REGION_T);
+ 
     if(key_M) current_action = ACTION_STAND;
     else if(key_N) current_action = ACTION_HAPPY;
     else if(key_O) current_action = ACTION_SAD;
@@ -303,80 +336,76 @@ void onReceive() {
     else if(key_T) current_action = ACTION_FEAR;
     else {
         current_action = ACTION_NONE;
-    }
-
-    if(last_action != current_action) {
-        action_step_reset();
-        last_action = current_action;
-        if(current_action == ACTION_FALL) {
-            uint32_t t = millis();
-            if (t&1) fall_left_or_right = 1;
-            else fall_left_or_right = 0;           
+        if (last_action != ACTION_STAND or last_action != ACTION_NONE) {
+            last_action = ACTION_NONE;
+            stand();
         }
     }
 
-    switch(current_action) {
-        case ACTION_STAND:
-            stand();
-            break;
-        case ACTION_HAPPY:
-            happy();
-            break;
-        case ACTION_SAD:
-            sad();
-            break;
-        case ACTION_SHY:
-            shy();
-            break;
-        case ACTION_DANCE:
-            dance();
-            break;
-        case ACTION_FALL:
-            if (fall_left_or_right) fall_right();
-            else fall_left();
-            break;
-        case ACTION_CONFUSE:
-            confuse();
-            break;
-        case ACTION_FEAR:
-            fear();
-            break;
-        default:
-            break;
+    if (current_action != ACTION_NONE) {
+        if(last_action != current_action) {
+            action_step_reset();
+            last_action = current_action;
+            if(current_action == ACTION_FALL) {  // The fall action randomly falls to the left or right
+                uint32_t t = millis();
+                if (t&1) fall_left_or_right = 1;
+                else fall_left_or_right = 0;           
+            }
+        }
+
+        switch(current_action) {
+            case ACTION_STAND:
+                stand();
+                break;
+            case ACTION_HAPPY:
+                happy();
+                break;
+            case ACTION_SAD:
+                sad();
+                break;
+            case ACTION_SHY:
+                shy();
+                break;
+            case ACTION_DANCE:
+                dance();
+                break;
+            case ACTION_FALL:
+                if (fall_left_or_right) fall_right();
+                else fall_left();
+                break;
+            case ACTION_CONFUSE:
+                confuse();
+                break;
+            case ACTION_FEAR:
+                fear();
+                break;
+            default:
+                break;
+        }
     }
 
-
-    Serial.print("current_action");Serial.println(current_action);
-    if(current_action != ACTION_NONE) {
-        voice_current_action = -1;
-        return;
-    }
-
-    // voice control
-    // const char* key_J = ws.recv_doc["J"];
-    // int8_t code = -1;
-    // if (key_J != NULL) {
-    //     code  = text_2_cmd_code(key_J);
-    // }
-
-    bool key_J = ws.recv_doc["J"];
+    /*-------------------- voice control ------------------*/
+    char key_J[20];
     int8_t code = -1;
-    if (key_J) {
-        code  = 1;
-        Serial.println("");
-    }
+    ws.getSpeech(REGION_J, key_J);
+    Serial.print("voice len: ");Serial.println(strlen(key_J));
+    if (strlen(key_J) > 0) {
+        code  = text_2_cmd_code(key_J);
+    } 
 
-    if(code != -1) {
+    if (code != -1) {
         voice_current_action = code;
         voice_step = VOICE_CONTROL_STEP;
         cmd_fuc_table[voice_current_action]();
-        voice_step --;
+        voice_step --;       
     } else {
-        if (voice_current_action != -1 && voice_step > 0) {
+        if (voice_step > 0 && voice_current_action != -1) {
             cmd_fuc_table[voice_current_action]();
             voice_step --;
+        } else {
+            voice_current_action = -1;
         }
+        
     }
 
-}
-
+} // onReceive
