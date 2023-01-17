@@ -74,6 +74,38 @@ void do_action(int8_t len, int32_t array_addr) {
     }
 }
 
+void do_action2(int8_t len, int8_t (*array_addr)) {
+    for(int i=0; i<len; i++) {
+        
+        Serial.print("0: ");Serial.println(int8_t(*(array_addr+SERVOS_NUM*i+0)));
+        Serial.print("1: ");Serial.println(int8_t(*(array_addr+SERVOS_NUM*i+1)));
+        Serial.print("2: ");Serial.println(int8_t(*(array_addr+SERVOS_NUM*i+2)));
+        Serial.print("3: ");Serial.println(int8_t(*(array_addr+SERVOS_NUM*i+3)));
+
+        RU.slowmove (int8_t(pgm_read_byte(&array_cal[0])) + int8_t(*(array_addr+SERVOS_NUM*i+0)) , speed);   
+        RL.slowmove (int8_t(pgm_read_byte(&array_cal[1])) + int8_t(*(array_addr+SERVOS_NUM*i+1)) , speed);
+        LU.slowmove (int8_t(pgm_read_byte(&array_cal[2])) + int8_t(*(array_addr+SERVOS_NUM*i+2)) , speed);
+        LL.slowmove (int8_t(pgm_read_byte(&array_cal[3])) + int8_t(*(array_addr+SERVOS_NUM*i+3)) , speed);
+        delay(delay_step);
+    }
+}
+
+void do_action2(int8_t len, int8_t (*array_addr)[SERVOS_NUM]) {
+    for(int i=0; i<len; i++) {
+        
+        Serial.print("0: ");Serial.println(int8_t(*(array_addr+SERVOS_NUM*i+0)));
+        Serial.print("1: ");Serial.println(int8_t(*(array_addr+SERVOS_NUM*i+1)));
+        Serial.print("2: ");Serial.println(int8_t(*(array_addr+SERVOS_NUM*i+2)));
+        Serial.print("3: ");Serial.println(int8_t(*(array_addr+SERVOS_NUM*i+3)));
+
+        RU.slowmove (int8_t(pgm_read_byte(&array_cal[0])) + int8_t(array_addr[SERVOS_NUM*i+0]) , speed);   
+        RL.slowmove (int8_t(pgm_read_byte(&array_cal[1])) + int8_t(array_addr[SERVOS_NUM*i+1]) , speed);
+        LU.slowmove (int8_t(pgm_read_byte(&array_cal[2])) + int8_t(array_addr[SERVOS_NUM*i+2]) , speed);
+        LL.slowmove (int8_t(pgm_read_byte(&array_cal[3])) + int8_t(array_addr[SERVOS_NUM*i+3]) , speed);
+        delay(delay_step);
+    }
+}
+
 void forward() {do_action(6, &array_forward);}
 void backward() {do_action(6, &array_backward);}
 void turn_left() {do_action(6, &array_turn_left);}

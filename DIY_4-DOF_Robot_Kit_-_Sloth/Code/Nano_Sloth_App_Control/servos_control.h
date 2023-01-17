@@ -4,17 +4,20 @@
 #include "VarSpeedServo.h"
 #include <NewPing.h>
 
+
 /*Number of servos*/
 #define SERVOS_NUM 4
 
-/*Define pins of servos*/
+/* Define pins of servos
+From the perspective of the robot, define the left and right
+*/
 #define UP_RIGHT_SERVO 9
 #define LOW_RIGHT_SERVO 10
 #define UP_LEFT_SERVO 11
 #define LOW_LEFT_SERVO 12
 
 /*Servos initial angle calibration value*/
-const int8_t array_cal[SERVOS_NUM] PROGMEM = {90, 90, 99, 85};  // RU, RL, LU, LL
+const int8_t array_cal[SERVOS_NUM] PROGMEM = {90, 85, 96, 86};  // RU, RL, LU, LL
 
 /*Define various action steps
 The value represents the rotation angle of the servo based on the initial position
@@ -148,11 +151,13 @@ const int8_t array_stomp_right[5][SERVOS_NUM] PROGMEM = {
 };
 
 const int8_t array_pigeon_toed[1][SERVOS_NUM] PROGMEM = {
-    {30, 0, -30, 0},
+    // {30, 0, -30, 0},
+    {-30, 0, 30, 0},
 };
 
 const int8_t array_splay_feet[1][SERVOS_NUM] PROGMEM = {
-    {-30, 0, 30, 0},
+    // {-30, 0, 30, 0},
+    {30, 0, -30, 0},
 };
 
 const int8_t array_tiptoe_left[2][SERVOS_NUM] PROGMEM = {
@@ -185,6 +190,8 @@ const int8_t array_go_up_and_down[2][SERVOS_NUM] PROGMEM = {
 void servos_init();
 void stop();
 void do_action(int8_t len, int32_t array_addr);
+void do_action2(int8_t len, int8_t (*array_addr));
+void do_action2(int8_t len, int8_t (*array_addr)[SERVOS_NUM]);
 void servo_move(uint8_t servo_num, int8_t angle);
 
 void forward();
