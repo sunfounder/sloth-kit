@@ -42,7 +42,7 @@ SunFounder is a company focused on STEAM education with products like open sourc
 
 ## Contact Us
 website:
-    <a>www.sunfounder.com </a>
+    <a href="https://www.sunfounder.com" target="_blank">www.sunfounder.com</a>
 
 E-mail:
     service@sunfounder.com
