@@ -17,7 +17,7 @@ From the perspective of the robot, define the left and right
 #define LOW_LEFT_SERVO 12
 
 /*Servos initial angle calibration value*/
-const int8_t array_cal[SERVOS_NUM] PROGMEM = {90, 85, 96, 86};  // RU, RL, LU, LL
+const int8_t array_cal[SERVOS_NUM] PROGMEM = {90, 90, 90, 90};  // RU, RL, LU, LL
 
 /*Define various action steps
 The value represents the rotation angle of the servo based on the initial position
@@ -151,12 +151,10 @@ const int8_t array_stomp_right[5][SERVOS_NUM] PROGMEM = {
 };
 
 const int8_t array_pigeon_toed[1][SERVOS_NUM] PROGMEM = {
-    // {30, 0, -30, 0},
     {-30, 0, 30, 0},
 };
 
 const int8_t array_splay_feet[1][SERVOS_NUM] PROGMEM = {
-    // {-30, 0, 30, 0},
     {30, 0, -30, 0},
 };
 
@@ -171,12 +169,10 @@ const int8_t array_tiptoe_right[2][SERVOS_NUM] PROGMEM = {
 };
 
 const int8_t array_fall_left[1][SERVOS_NUM] PROGMEM = {
-    // {40, -30, 40, -70},
     {40, -30, 40, -30},
 };
 
 const int8_t array_fall_right[1][SERVOS_NUM] PROGMEM = {
-    // {-40, 70, -40, 30},
     {-40, 30, -40, 30},
 };
 
