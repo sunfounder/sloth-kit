@@ -51,4 +51,8 @@ int8_t text_2_cmd_code(char *text) {
     return -1;
 }
 
+void voice_action(int8_t action_index) {
+    cmd_fuc_table[action_index]();
+}
+
 #endif
