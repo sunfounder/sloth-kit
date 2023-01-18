@@ -1,7 +1,7 @@
 /*******************************************************************
   This is the program for Ardunio Nano. The upper machine esp01s (or other)
   establishes websockets service to communicate with APP Sunfounder Controller,
-  and returns data from the serial port to Nano, so as to complete the 
+  and returns data from the serial port to Nano, so as to complete the
   remote control of the robot Sloth.
 
   Dependent libraries:
@@ -11,56 +11,68 @@
   Board tools:
     - Ardunio Nano
 
-  Version: 1.1.2
+  Version: 1.1.3
     -- https://github.com/sunfounder/sloth-kit
 
   Author: Sunfounder
   Website: http://www.sunfounder.com
            https://docs.sunfounder.com
  *******************************************************************/
+#define VERSION "1.1.3"
+
 #include <Arduino.h>
 #include "string.h"
-
-#include "VarSpeedServo.h"  //include the VarSpeedServo library
-#include "ws.h"       
+#include "VarSpeedServo.h"
+#include "ws.h"
 #include "servos_control.h"
 #include "ultrasonic.h"
 #include "voice_control.h"
 
-#define VERSION "1.1.2"
-
+/************************** Configure ******************************/
+/* Enable test mode */
 #define TEST 0
-#define PRINT_WS_RECV 1 // 1, enable print WS receive
-#define VOICE_CONTROL_STEP 3
-uint8_t voice_step = VOICE_CONTROL_STEP;
-extern int speed;
-extern int delay_step;
-bool autonomous_mode = false;
 
-bool is_stand = false;
+/* Enable print WS receive */
+#define PRINT_WS_RECV 1
 
+/* Configure Wifi mode, ssid, password aand websockets port*/
+#define WIFI_MODE WIFI_MODE_STA
+#define SSID "YOUR_SSID"
+#define PASSWORD "YOUR_PASSWORD"
+#define PORT "8765"
+
+/* WIFI AP mode */
+// #define WIFI_MODE WIFI_MODE_AP
+// #define SSID "YOUR_SSID"
+// #define PASSWORD "YOUR_PASSWORD"
+
+/* Define Name & Type */
+#define NAME "Nano Sloth"
+#define TYPE "Nano Sloth"
+
+/* Configure the steps each voice command performs an action */
+#define VOICE_CONTROL_STEP 5
+
+/* Configure the distance of Avoid mode, Follow mode and Keep Distance mode */
 #define AVOID_DISTANCE 10
 #define FOLLOW_DISTANCE 20
 #define KEEP_DISTANCE_DISTANCE 5
-bool last_obstacle_state = false;
 
-uint8_t fall_left_or_right = 0; // 0:left, 1:right
-/**
-* Define built-in LED pin
-*/
+/* Define built-in LED pin */
 #define BUILT_IN_LED 13
- 
-/** Configure Wifi mode, ssid, password aand ws port*/
-#define WIFI_MODE WIFI_MODE_STA
-#define SSID "Your SSID"
-#define PASSWORD "Your password"
-#define PORT "8765"
 
-
-// WS ws = WS(NAME, TYPE);
+/*********************** Global variables ****************************/
 WS ws = WS();
 
 float distance = 0;
+
+extern int speed;
+extern int delay_step;
+
+uint8_t voice_step = VOICE_CONTROL_STEP;
+bool autonomous_mode = false;
+bool last_obstacle_state = false;
+uint8_t fall_left_or_right = 0; // 0:left, 1:right
 
 #define ACTION_NONE 0
 #define ACTION_STAND 1
@@ -71,7 +83,6 @@ float distance = 0;
 #define ACTION_FALL 6
 #define ACTION_CONFUSE 7
 #define ACTION_FEAR 8
-
 
 uint8_t current_action = ACTION_NONE;
 uint8_t last_action = ACTION_NONE;
@@ -92,7 +103,7 @@ bool key_T = false;
 
 int8_t voice_current_action = -1;
 
-
+/*********************** setup() & loop() ************************/
 void setup()
 {
     int m = millis();
@@ -110,7 +121,7 @@ void setup()
     while (millis() - m < 500) { // Wait for peripherals to be ready
         delay(1);
     }
-    ws.begin(SSID, PASSWORD, WIFI_MODE, PORT);
+    ws.begin(SSID, PASSWORD, WIFI_MODE, PORT, NAME, TYPE);
     ws.setOnReceived(onReceive);
 #endif
 }
@@ -120,8 +131,8 @@ void loop()
 
 #if TEST == 0
     ws.loop();
-    distance = ultrasonic_read();
-#else
+
+#else /* if TEST == 1, Select the function you need to test by removing the comment */
     delay(50);
     // distance = ultrasonic_read();
     // Serial.print("distance: "); Serial.println(distance);
@@ -131,21 +142,23 @@ void loop()
     // servo_move(1, 0);
     // servo_move(2, 0);
     // servo_move(3, 0);
-    int8_t custom_step[][4] = {
-        {0, 40, 0, 15},
-        {30, 40, 30, 15},
-        {30, 0, 30, 0},
 
-        {0, -15, 0, -40},
-        {-30, -15, -30, -40},
-        {-30, 0, -30, 0},
-    };
-    do_action2(6, &custom_step[0][0]);
+    // int8_t custom_step[][4] = {
+    //     {0, 40, 0, 15},
+    //     {30, 40, 30, 15},
+    //     {30, 0, 30, 0},
+
+    //     {0, -15, 0, -40},
+    //     {-30, -15, -30, -40},
+    //     {-30, 0, -30, 0},
+    // };
+    // do_action2(6, &custom_step[0][0]);
+
     // forward();
     // backward();
     // turn_left();
     // turn_right();
-    // stand();
+    stand();
     // moon_walk_left();
     // moon_walk_right();
     // hook();
@@ -187,15 +200,11 @@ void loop()
 #endif
 }
 
+/*------------------ avoid & follow & keep_distance ---------------------*/
 void avoid() {
-    // if (distance < 2) {
-    //     last_obstacle_state = true;
-    //     stand();
-    // } else 
     if(distance <= AVOID_DISTANCE) {
         if (last_obstacle_state == false) {
             hook();
-            delay(50);
             stand();
         }
         last_obstacle_state = true;
@@ -213,7 +222,6 @@ void follow() {
     } else if(distance < FOLLOW_DISTANCE) {
         if (last_obstacle_state == false) {
             hook();
-            delay(50);
             stand();
         }
         last_obstacle_state = true;
@@ -228,7 +236,6 @@ void keep_distance() {
     if (distance < KEEP_DISTANCE_DISTANCE) {
         if (last_obstacle_state == false) {
             hook();
-            delay(50);
             stand();
         }
         last_obstacle_state = true;
@@ -242,10 +249,7 @@ void keep_distance() {
     }
 }
 
-
-/**
- * websocket received data processing
- */
+/*-------------------- websocket received data processing -----------------------*/
 void onReceive() {
     #if PRINT_WS_RECV == 1
         Serial.print("onRecv:");
@@ -253,9 +257,10 @@ void onReceive() {
     #endif
 
     /*---------------- data to display ----------------*/
+    distance = ultrasonic_read();
     ws.send_doc["I"] = distance;
 
-    /*---------------- remote control ----------------*/
+    /*---------------- seed control ----------------*/
     // speed
     int key_A = ws.getSlider(REGION_A);
     speed = key_A;
@@ -294,7 +299,7 @@ void onReceive() {
 
     /*-------------------- movement ------------------*/
     uint8_t key_K = ws.getDPad(REGION_K);
-    // If there is a movement, it will return after execution, 
+    // If there is a movement, it will return after execution,
     // and "action control" and "voice control" will not be executed
     switch (key_K) {
         case DPAD_STOP:
@@ -319,13 +324,13 @@ void onReceive() {
     /*-------------------- actions control ------------------*/
     key_M = ws.getMusicSwitch(REGION_M);
     key_N = ws.getMusicSwitch(REGION_N);
-    key_O = ws.getMusicSwitch(REGION_O); 
+    key_O = ws.getMusicSwitch(REGION_O);
     key_P = ws.getMusicSwitch(REGION_P);
     key_Q = ws.getMusicSwitch(REGION_Q);
     key_R = ws.getMusicSwitch(REGION_R);
     key_S = ws.getMusicSwitch(REGION_S);
     key_T = ws.getMusicSwitch(REGION_T);
- 
+
     if(key_M) current_action = ACTION_STAND;
     else if(key_N) current_action = ACTION_HAPPY;
     else if(key_O) current_action = ACTION_SAD;
@@ -346,10 +351,11 @@ void onReceive() {
         if(last_action != current_action) {
             action_step_reset();
             last_action = current_action;
-            if(current_action == ACTION_FALL) {  // The fall action randomly falls to the left or right
+            if(current_action == ACTION_FALL) {
+                // The fall action randomly falls to the left or right 
                 uint32_t t = millis();
                 if (t&1) fall_left_or_right = 1;
-                else fall_left_or_right = 0;           
+                else fall_left_or_right = 0;
             }
         }
 
@@ -391,21 +397,21 @@ void onReceive() {
     Serial.print("voice len: ");Serial.println(strlen(key_J));
     if (strlen(key_J) > 0) {
         code  = text_2_cmd_code(key_J);
-    } 
+    }
 
     if (code != -1) {
         voice_current_action = code;
         voice_step = VOICE_CONTROL_STEP;
-        cmd_fuc_table[voice_current_action]();
-        voice_step --;       
+        voice_action(voice_current_action);
+        voice_step --;
     } else {
         if (voice_step > 0 && voice_current_action != -1) {
-            cmd_fuc_table[voice_current_action]();
+            voice_action(voice_current_action);
             voice_step --;
         } else {
             voice_current_action = -1;
         }
-        
+
     }
 
 } // onReceive
