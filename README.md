@@ -8,8 +8,11 @@ This is the code, drivers and some documents for Nano Sloth Kit.
 - [Contact Us](#contact-us)
 
 ## Nano Sloth Kit
-<img src="./img/Nano_Sloth_V1.png" width="212" height="261"   align="left-center" title="Nano_Sloth_V1"/>
-<!-- <img src="./img/Nano_Sloth_V2.png" width="212" height="261" align="right-center" title="Nano_Sloth_V2"/> -->
+<div align="center">
+    <img src="./img/Nano_Sloth_V1.png" width="212" height="261"   align="center" title="Nano_Sloth_V1"/>
+    &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+    <!-- <img src="./img/Nano_Sloth_V2.png" width="212" height="261" align="center" title="Nano_Sloth_V2"/> -->
+</div>
 
 This cute learning kit focuses on the popular open source platform Arduino. You can learn the knowledge of the Arduino servo and ultrasonic ranging module by applying this kit.
 
