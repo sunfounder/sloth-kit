@@ -1,26 +1,12 @@
 #include "ws.h"
 #include "string.h"
 
-// char recvBuffer[WS_BUFFER_SIZE + strlen(WS_HEADER)];
-
 /**
 *  functions for manipulating string 
 */
 #define IsStartWith(str, prefix) (strncmp(str, prefix, strlen(prefix)) == 0)
 #define StrAppend(str, suffix) uint32_t len=strlen(str); str[len] = suffix; str[len+1] = '\0'
 #define StrClear(str) str[0] = 0
-
-/**
- * @brief instantiate WS Class, set name and type
- * @param name set name
- * @param type set type
- */
-// WS::WS(const char* name, const char* type) {
-    
-//     send_doc["Name"] = name;
-//     send_doc["Type"] = type;
-//     send_doc["Check"] = CHECK;
-// }
 
 /**
  * @brief Set wifi and websocket port to esp32-cam, 
@@ -30,8 +16,16 @@
  * @param password wifi password
  * @param wifiMode  0,None; 1, STA; 2, AP
  * @param wsPort websocket server port
+ * 
  */
-void WS::begin(const char* ssid, const char* password, const char* wifi_mode, const char* ws_port) {
+void WS::begin(
+    const char* ssid,
+    const char* password, 
+    const char* wifi_mode, 
+    const char* ws_port
+    const char* name,
+    const char* type) 
+{
     #if(CUSTOM_SERIAL == 1)
         DateSerial.begin(115200);
     #endif
@@ -45,7 +39,9 @@ void WS::begin(const char* ssid, const char* password, const char* wifi_mode, co
     this->set("PSK",  password);
     this->set("MODE", wifi_mode);
     this->set("PORT", ws_port);
-    this->set("SMD", "1");
+    this->set("SMD", "1");  // 0:send original text; 1:send simplified text
+    this->set("NAME", name);
+    this->set("TYPE", type);
 
     this->get("START", ip);
 
@@ -53,7 +49,6 @@ void WS::begin(const char* ssid, const char* password, const char* wifi_mode, co
     Serial.print(ip);
     Serial.print(":");
     Serial.println(ws_port);
-
 }
 
 /**
@@ -77,25 +72,23 @@ void WS::setOnReceived(void (*func)()) { __on_receive__ = func; }
  */
 
 void WS::loop() {
-    // StrClear(recvBuffer);
     StrClear(readBuffer);
     this->readInto(readBuffer);
     int len = strlen(readBuffer);
     if (len != 0) {
-        // ws_debug("recvBuffer: ");ws_debugln(recvBuffer);
-        Serial.print("readBuffer: ");Serial.println(readBuffer);
+        ws_debug("readBuffer: ");ws_debugln(readBuffer);
         if (IsStartWith(readBuffer, WS_HEADER) and __on_receive__ != NULL) {
             this->subString(readBuffer, strlen(WS_HEADER));
             int lenCheck = getIntOf(readBuffer, REGION_LEN);
-            Serial.print("len:");Serial.println(len);
-            Serial.print("lenCheck:");Serial.println(lenCheck);
+            ws_debug("len:");ws_debugln(len);
+            ws_debug("lenCheck:");ws_debugln(lenCheck);
             if (lenCheck == len) {
                 StrClear(recvBuffer);
                 strcpy(recvBuffer, readBuffer);
                 __on_receive__();
+                this->sendData();
             } 
         }
-        this->sendData();
     }
 }
 
@@ -126,7 +119,6 @@ void WS::readInto(char* buffer) {
         } else if (incomingChar == '\r') {
             continue;
         } else if ((int)incomingChar > 31 && (int)incomingChar < 127) {
-            // Serial.print(incomingChar);
             StrAppend(buffer, incomingChar);
             delayMicroseconds(100); // This delay is necessary, wait for operation complete 
             count ++;
@@ -180,9 +172,9 @@ void WS::set(const char* command) {
  * @param value
  * 
  * @code {.cpp}
- * set("NAME", "Zeus_Car");
- * set("TYPE", "Zeus_Car");
- * set("SSID", "Zeus_Car");
+ * set("NAME", "Nano_Sloth");
+ * set("TYPE", "Nano_Sloth");
+ * set("SSID", "Nano_Sloth");
  * set("PSK",  "12345678");
  * set("MODE", WIFI_MODE_AP);
  * set("PORT", "8765");
@@ -240,20 +232,20 @@ void WS::sendData(char* sendBuffer) {
  */
 void WS::sendData() {
     //send static content
-    DateSerial.print(F(WS_HEADER));
-    DateSerial.print(F(
-        "{"
-        "\"Name\": \"" NAME "\","
-        "\"Type\": \"" TYPE "\","
-        "\"Check\": \"" CHECK "\""
-        "}"
-    )); 
-    DateSerial.print("\n");    
+    // DateSerial.print(F(WS_HEADER));
+    // DateSerial.print(F(
+    //     "{"
+    //     "\"Name\": \"" NAME "\","
+    //     "\"Type\": \"" TYPE "\","
+    //     "\"Check\": \"" CHECK "\""
+    //     "}"
+    // )); 
+    // DateSerial.print("\n");
 
     //send dynamic content
     DateSerial.print(F(WS_HEADER));
     serializeJson(send_doc, DateSerial);
-    DateSerial.print("\n");    
+    DateSerial.print("\n");
 }
 
 /** 

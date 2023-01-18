@@ -99,9 +99,10 @@ class WS {
             const char* ssid, 
             const char* password, 
             const char* wifi_mode,
-            const char* ws_port="8765"
+            const char* ws_port="8765",
+            const char* name = NAME,
+            const char* type = TYPE
         );
-        // void setOnReceived(void (*func)(char*, char*));
         void setOnReceived(void (*func)());
         void loop();
         void readInto(char* buffer);
