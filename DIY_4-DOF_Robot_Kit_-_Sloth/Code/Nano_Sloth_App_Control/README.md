@@ -26,23 +26,23 @@ This is the program for Ardunio Nano. The upper machine esp01s (or other) establ
 </div>
 
 ## Project Tree
-    Nano_Sloth_App_Control                   
-    ├─ Nano_Sloth_App_Control.ino     // main file       
-    ├─ servos_control.cpp             // servos control      
-    ├─ servos_control.h               // servos driver and action arrays  
-    ├─ ultrasonic.cpp                 //  ultrasonic    
-    ├─ ultrasonic.h                          
-    ├─ VarSpeedServo.cpp              // servos underlying driver       
-    ├─ VarSpeedServo.h                       
-    ├─ voice_control.h                // voice control functions and command list      
+    Nano_Sloth_App_Control
+    ├─ Nano_Sloth_App_Control.ino     // main file
+    ├─ servos_control.cpp             // servos control
+    ├─ servos_control.h               // servos driver and action arrays
+    ├─ ultrasonic.cpp                 //  ultrasonic
+    ├─ ultrasonic.h
+    ├─ VarSpeedServo.cpp              // servos underlying driver
+    ├─ VarSpeedServo.h
+    ├─ voice_control.h                // voice control functions and command list
     ├─ ws.cpp                         // websocket uart serial data reading and processing
-    ├─ ws.h      
-    └─README.md                            
+    ├─ ws.h
+    └─README.md
 
 
 ## Contact us
 website:
-    <a>www.sunfounder.com</a>
+    <a href="https://www.sunfounder.com" target="_blank">www.sunfounder.com</a>
 
 E-mail:
     service@sunfounder.com
