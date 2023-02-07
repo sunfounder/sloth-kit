@@ -36,6 +36,30 @@ void (*cmd_fuc_table [])(){
     dance,
 };
 
+const int8_t voice_action_max_step[] = {
+    1,
+    ARRY_FORWARD_LENGTH,
+    ARRY_BACKWARD_LENGTH,
+    ARRY_TURN_LEFT_LENGTH,
+    ARRY_TURN_RIGHT_LENGTH,
+    ARRY_STAND_LENGTH,
+    ARRY_BIG_SWING_LENGTH,
+    ARRY_HAPPY_LENGTH,
+    ARRY_DANCE_LENGTH,
+};
+
+int8_t voice_action_time[] = {
+    2,
+    5,
+    5,
+    5,
+    5,
+    2,
+    2,
+    5,
+    1,
+};
+
 int8_t text_2_cmd_code(char *text) {
     String str = String(text);
     char buffer[20];
