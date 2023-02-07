@@ -16,13 +16,21 @@ From the perspective of the robot, define the left and right
 #define UP_LEFT_SERVO 11
 #define LOW_LEFT_SERVO 12
 
+/* Enable EEPROM calibration 
+if true, the array_cal[] will change to the values reading from EEPROM 
+*/
+#define EEPROM_CALIBRATION 1
+#define EEPROM_CALIBRATION_ADDRESS 0x00
+
 /*Servos initial angle calibration value*/
-const int8_t array_cal[SERVOS_NUM] PROGMEM = {90, 90, 90, 90};  // RU, RL, LU, LL
+#define ARRAY_CALIBRATION_INIT {90, 90, 90, 90} // RU, RL, LU, LL
+extern int8_t array_cal[SERVOS_NUM];
 
 /*Define various action steps
 The value represents the rotation angle of the servo based on the initial position
 */
-const int8_t array_forward[6][SERVOS_NUM] PROGMEM = {
+#define ARRY_FORWARD_LENGTH 6
+const int8_t array_forward[ARRY_FORWARD_LENGTH][SERVOS_NUM] PROGMEM = {
     {0, 40, 0, 15},
     {-30, 40, -30, 15},
     {-30, 0, -30, 0},
@@ -32,7 +40,8 @@ const int8_t array_forward[6][SERVOS_NUM] PROGMEM = {
     {30, 0, 30, 0},
 };
 
-const int8_t array_backward[6][SERVOS_NUM] PROGMEM = {
+#define ARRY_BACKWARD_LENGTH 6
+const int8_t array_backward[ARRY_BACKWARD_LENGTH][SERVOS_NUM] PROGMEM = {
     {0, 40, 0, 15},
     {30, 40, 30, 15},
     {30, 0, 30, 0},
@@ -42,7 +51,8 @@ const int8_t array_backward[6][SERVOS_NUM] PROGMEM = {
     {-30, 0, -30, 0},
 };
 
-const int8_t array_turn_left[6][SERVOS_NUM] PROGMEM = {
+#define ARRY_TURN_LEFT_LENGTH 6
+const int8_t array_turn_left[ARRY_TURN_LEFT_LENGTH][SERVOS_NUM] PROGMEM = {
     {0, -20, 0, -40},
     {-20, -20, 0, -40},
     {-20, 0, 0, 0},
@@ -52,7 +62,8 @@ const int8_t array_turn_left[6][SERVOS_NUM] PROGMEM = {
     {20, 0, 0, 0},
 };
 
-const int8_t array_turn_right[6][SERVOS_NUM] PROGMEM = {
+#define ARRY_TURN_RIGHT_LENGTH 6
+const int8_t array_turn_right[ARRY_TURN_RIGHT_LENGTH][SERVOS_NUM] PROGMEM = {
     {0, 40, 0, 20},
     {0, 40, 20, 20},
     {0, 0, 20, 0},
@@ -62,11 +73,13 @@ const int8_t array_turn_right[6][SERVOS_NUM] PROGMEM = {
     {0, 0, -20, 0},
 };
 
-const int8_t array_stand[1][SERVOS_NUM] PROGMEM = {
+#define ARRY_STAND_LENGTH 1
+const int8_t array_stand[ARRY_STAND_LENGTH][SERVOS_NUM] PROGMEM = {
     {0,0,0,0},
 };
 
-const int8_t array_moon_walk_left[5][SERVOS_NUM] PROGMEM = {
+#define ARRY_MOON_LEFT_LENGTH 5
+const int8_t array_moon_walk_left[ARRY_MOON_LEFT_LENGTH][SERVOS_NUM] PROGMEM = {
     {0, 0, 0, -30},
     {0, 30, 0, -60},
     {0, 60, 0, -30},
@@ -74,7 +87,8 @@ const int8_t array_moon_walk_left[5][SERVOS_NUM] PROGMEM = {
     {0, 0, 0, 0},
 };
 
-const int8_t array_moon_walk_right[5][SERVOS_NUM] PROGMEM = {
+#define ARRY_MOON_RIGHT_LENGTH 5
+const int8_t array_moon_walk_right[ARRY_MOON_RIGHT_LENGTH][SERVOS_NUM] PROGMEM = {
     {0, 30, 0, 0},
     {0, 60, 0, -30},
     {0, 30, 0, -60},
@@ -82,11 +96,13 @@ const int8_t array_moon_walk_right[5][SERVOS_NUM] PROGMEM = {
     {0, 0, 0, 0},
 };
 
-const int8_t array_hook[1][SERVOS_NUM] PROGMEM = {
+#define ARRY_HOOK_LENGTH 1
+const int8_t array_hook[ARRY_HOOK_LENGTH][SERVOS_NUM] PROGMEM = {
     {0, 50, 0, -50},
 };
 
-const int8_t array_big_swing[1][SERVOS_NUM] PROGMEM = {
+#define ARRY_BIG_SWING_LENGTH 1
+const int8_t array_big_swing[ARRY_BIG_SWING_LENGTH][SERVOS_NUM] PROGMEM = {
     {0, -90, 0, 90},
 };
 
@@ -184,11 +200,13 @@ const int8_t array_go_up_and_down[2][SERVOS_NUM] PROGMEM = {
 
 /* Functions */
 void servos_init();
+void set_servo_calibration(int8_t cali_angles[SERVOS_NUM]);
 void stop();
 void do_action(int8_t len, int32_t array_addr);
 void do_action2(int8_t len, int8_t (*array_addr));
 void do_action2(int8_t len, int8_t (*array_addr)[SERVOS_NUM]);
 void servo_move(uint8_t servo_num, int8_t angle);
+void servo_move_no_cali(uint8_t servo_num, int8_t angle);
 
 void forward();
 void backward();

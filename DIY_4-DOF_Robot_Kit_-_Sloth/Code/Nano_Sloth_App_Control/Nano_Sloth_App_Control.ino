@@ -27,31 +27,31 @@
 #include "servos_control.h"
 #include "ultrasonic.h"
 #include "voice_control.h"
+#include <EEPROM.h>
 
 /************************** Configure ******************************/
 /* Enable test mode */
 #define TEST 0
 
 /* Enable print WS receive */
-#define PRINT_WS_RECV 1
+#define PRINT_WS_RECV 0
 
-/* Configure Wifi mode, ssid, password aand websockets port*/
-#define WIFI_MODE WIFI_MODE_STA
-#define SSID "YOUR_SSID"
-#define PASSWORD "YOUR_PASSWORD"
-#define PORT "8765"
-
-/* WIFI AP mode */
-// #define WIFI_MODE WIFI_MODE_AP
+/* Configure Wifi mode, ssid, password */
+// #define WIFI_MODE WIFI_MODE_STA
 // #define SSID "YOUR_SSID"
 // #define PASSWORD "YOUR_PASSWORD"
+
+/* WIFI AP mode */
+#define WIFI_MODE WIFI_MODE_AP
+#define SSID "Nano Sloth"
+#define PASSWORD "12345678"
+
+/* websockets port */
+#define PORT "8765"
 
 /* Define Name & Type */
 #define NAME "Nano Sloth"
 #define TYPE "Nano Sloth"
-
-/* Configure the steps each voice command performs an action */
-#define VOICE_CONTROL_STEP 5
 
 /* Configure the distance of Avoid mode, Follow mode and Keep Distance mode */
 #define AVOID_DISTANCE 10
@@ -69,7 +69,7 @@ float distance = 0;
 extern int speed;
 extern int delay_step;
 
-uint8_t voice_step = VOICE_CONTROL_STEP;
+uint8_t voice_step = 0;
 bool autonomous_mode = false;
 bool last_obstacle_state = false;
 uint8_t fall_left_or_right = 0; // 0:left, 1:right
@@ -87,10 +87,38 @@ uint8_t fall_left_or_right = 0; // 0:left, 1:right
 uint8_t current_action = ACTION_NONE;
 uint8_t last_action = ACTION_NONE;
 bool is_action = false;
+int8_t voice_current_action = -1;
+
+/* define mode variables */
+#define MODE_NONE 0
+#define MODE_AVOID 1
+#define MODE_FOLLOW 2
+#define MODE_KEEP_DISTANCE 3
+#define MODE_CALIBRATION 4
+
+uint8_t mode = MODE_NONE;
+
+/* define calibration variables */
+uint8_t cali_select = 0; // 0 left, 1 right
+int8_t cali_arry_temp[4] = {0, 0, 0, 0}; // 0, Right upper; 1, Right lower； 2, Left upper; 3, Left lower;
+uint8_t cali_max = 20;
+
+/* define key variables */
+int key_A = 0; // slider -100 ~ 100, init value 0
+int key_B = 0;
+int key_D = 0;
+int key_H = 0;
+
+bool key_J_Calibration = false;
+bool key_I = false; 
 
 bool key_E = false;
 bool key_F = false;
 bool key_G = false;
+
+char key_J_Voice[20];
+
+uint8_t key_K = 0;
 
 bool key_M = false;
 bool key_N = false;
@@ -100,8 +128,6 @@ bool key_Q = false;
 bool key_R = false;
 bool key_S = false;
 bool key_T = false;
-
-int8_t voice_current_action = -1;
 
 /*********************** setup() & loop() ************************/
 void setup()
@@ -249,31 +275,92 @@ void keep_distance() {
     }
 }
 
-/*-------------------- websocket received data processing -----------------------*/
+int map_value (int input, int input_min, int input_max, int output_min, int output_max) {
+    int output = 0; 
+    // limit input
+    if (input < input_min) {
+        input = input_min;
+    } else if (input > input_max) {
+        input = input_max;
+    }
+    // remap
+    output = output_min + (output_max - output_min)*(input-input_min)/(input_max-input_min);
+    return output;
+}
+
+void calibrate() {
+    Serial.println("Calibrating: ");
+    int intput_min = -100;
+    int intput_max = 100;
+    int output_min = 90 - cali_max;
+    int output_max = 90 + cali_max;
+    cali_arry_temp[0] = map_value(key_D, intput_min, intput_max, output_min, output_max);
+    cali_arry_temp[1] = map_value(key_H, intput_min, intput_max, output_min, output_max);
+    cali_arry_temp[2] = map_value(key_A, intput_min, intput_max, output_min, output_max);
+    cali_arry_temp[3] = map_value(key_B, intput_min, intput_max, output_min, output_max);
+    Serial.print(cali_arry_temp[0]);Serial.print(", ");
+    Serial.print(cali_arry_temp[1]);Serial.print(", ");
+    Serial.print(cali_arry_temp[2]);Serial.print(", ");
+    Serial.print(cali_arry_temp[3]);Serial.println();
+
+    if (key_I) { // save calibration
+        set_servo_calibration(cali_arry_temp);
+        servo_move_no_cali(0, output_min);
+        servo_move_no_cali(1, output_min);
+        servo_move_no_cali(2, output_min);
+        servo_move_no_cali(3, output_min);       
+    }
+
+    servo_move_no_cali(0, cali_arry_temp[0]);
+    servo_move_no_cali(1, cali_arry_temp[1]);
+    servo_move_no_cali(2, cali_arry_temp[2]);
+    servo_move_no_cali(3, cali_arry_temp[3]);
+}
+
+/*-------------------- websocket received data to key values -----------------------*/
 void onReceive() {
     #if PRINT_WS_RECV == 1
         Serial.print("onRecv:");
         Serial.println(ws.recvBuffer);
     #endif
 
-    /*---------------- data to display ----------------*/
-    distance = ultrasonic_read();
-    ws.send_doc["I"] = distance;
-
-    /*---------------- seed control ----------------*/
+#if 0 /*-------------- speed control ----------------*/
     // speed
     int key_A = ws.getSlider(REGION_A);
     speed = key_A;
     // delay_step
     int key_B = ws.getSlider(REGION_B);
     delay_step = key_B;
+#endif
 
-    /*---------------- autonomous mode ----------------*/
-    //"obstacle avoid" , "obstacle follow" , "keep diatance"
+    /*-------------- EEPROM_CALIBRATION ----------------*/
+#if EEPROM_CALIBRATION == 1 
+    key_J_Calibration = ws.getSwitch(REGION_J);
+    // ws.getSpeech(REGION_J, key_J);
+
+    key_A = ws.getSlider(REGION_A); // left upper calibrate slider
+    key_B = ws.getSlider(REGION_B); // left lower
+    key_D = ws.getSlider(REGION_D); // right upper
+    key_H = ws.getSlider(REGION_H); // right lower
+    key_I = ws.getButton(REGION_I); // save calibration
+
+    if (key_J_Calibration) {
+    // if (String(key_J).indexOf("1") != -1) {
+        calibrate();
+        return;
+    }
+
+#endif
+
+    /*---------------- data to display ----------------*/
+    distance = ultrasonic_read();
+    ws.send_doc["I"] = distance;
+    
+    /*------------------ mode ----------------------*/
     key_E = ws.getSwitch(REGION_E);
     key_F = ws.getSwitch(REGION_F);
     key_G = ws.getSwitch(REGION_G);
-
+    
     if (key_E) {
         autonomous_mode = true;
         avoid();
@@ -297,7 +384,7 @@ void onReceive() {
         }
     }
 
-    /*-------------------- movement ------------------*/
+    /*-------------------- movement -----------------*/
     uint8_t key_K = ws.getDPad(REGION_K);
     // If there is a movement, it will return after execution,
     // and "action control" and "voice control" will not be executed
@@ -348,6 +435,8 @@ void onReceive() {
     }
 
     if (current_action != ACTION_NONE) {
+        // voice_action = -1;
+        voice_step = 0;
         if(last_action != current_action) {
             action_step_reset();
             last_action = current_action;
@@ -391,27 +480,30 @@ void onReceive() {
     }
 
     /*-------------------- voice control ------------------*/
-    char key_J[20];
+    // char key_J[20];
     int8_t code = -1;
-    ws.getSpeech(REGION_J, key_J);
-    Serial.print("voice len: ");Serial.println(strlen(key_J));
-    if (strlen(key_J) > 0) {
-        code  = text_2_cmd_code(key_J);
+    ws.getSpeech(REGION_J, key_J_Voice);
+    Serial.print("voice len: ");Serial.println(strlen(key_J_Voice));
+    if (strlen(key_J_Voice) > 0) {
+        code  = text_2_cmd_code(key_J_Voice);
+        if (code != -1) {
+            if (voice_current_action != code) {
+                voice_current_action = code;
+                voice_step = voice_action_max_step[code]*voice_action_time[code];
+            }
+        }
     }
+    Serial.print("voice_step: ");Serial.print(voice_step);
+    Serial.print("voice_current_action: ");Serial.println(voice_current_action);
 
-    if (code != -1) {
-        voice_current_action = code;
-        voice_step = VOICE_CONTROL_STEP;
+    if (voice_step > 0 && voice_current_action != -1) {
         voice_action(voice_current_action);
         voice_step --;
+        ws.send_doc["J"] = 1;
     } else {
-        if (voice_step > 0 && voice_current_action != -1) {
-            voice_action(voice_current_action);
-            voice_step --;
-        } else {
-            voice_current_action = -1;
-        }
-
+        voice_current_action = -1;
+        voice_step = 0;
+        ws.send_doc["J"] = 0;
     }
 
-} // onReceive
+}
