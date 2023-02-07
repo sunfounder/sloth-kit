@@ -188,7 +188,7 @@ void loop()
     // moon_walk_left();
     // moon_walk_right();
     // hook();
-    // big_swing();
+    // sit();
     // swing();
     // walk_boldly();
     // walk_backward_boldly();

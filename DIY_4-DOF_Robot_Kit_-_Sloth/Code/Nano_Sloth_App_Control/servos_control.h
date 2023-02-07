@@ -101,8 +101,8 @@ const int8_t array_hook[ARRY_HOOK_LENGTH][SERVOS_NUM] PROGMEM = {
     {0, 50, 0, -50},
 };
 
-#define ARRY_BIG_SWING_LENGTH 1
-const int8_t array_big_swing[ARRY_BIG_SWING_LENGTH][SERVOS_NUM] PROGMEM = {
+#define ARRY_SIT_LENGTH 1
+const int8_t array_sit[ARRY_SIT_LENGTH][SERVOS_NUM] PROGMEM = {
     {0, -90, 0, 90},
 };
 
@@ -216,7 +216,7 @@ void stand();
 void moon_walk_left();
 void moon_walk_right();
 void hook();
-void big_swing();
+void sit();
 void swing();
 void walk_boldly();
 void walk_backward_boldly();
@@ -257,7 +257,7 @@ const int16_t array_dance[ARRY_DANCE_LENGTH] PROGMEM = {
     moon_walk_right, moon_walk_right, moon_walk_right, // 12
 
     hook, stand, hook, stand, hook, stand,
-    swing, big_swing, swing, big_swing, swing, big_swing, // 12
+    swing, sit, swing, sit, swing, sit, // 12
     tiptoe_left, tiptoe_right, stand, // 3
 };
 void dance();
@@ -270,7 +270,7 @@ void happy();
 
 #define ARRY_SAD_LENGTH 1
 const int16_t array_sad[ARRY_SAD_LENGTH] PROGMEM = {
-    big_swing,
+    sit,
 };
 void sad();
 

@@ -162,7 +162,7 @@ void stand() {do_action(ARRY_STAND_LENGTH, &array_stand);}
 void moon_walk_left() {do_action(ARRY_MOON_LEFT_LENGTH, &array_moon_walk_left);}
 void moon_walk_right() {do_action(ARRY_MOON_RIGHT_LENGTH, &array_moon_walk_right);}
 void hook() {do_action(ARRY_HOOK_LENGTH, &array_hook);}
-void big_swing() {do_action(ARRY_BIG_SWING_LENGTH, &array_big_swing);}
+void sit() {do_action(ARRY_SIT_LENGTH, &array_sit);}
 void swing() {do_action(1, &array_swing);}
 void walk_boldly() {do_action(6, &array_walk_boldly);}
 void walk_backward_boldly() {do_action(6, &array_walk_backward_boldly);}
