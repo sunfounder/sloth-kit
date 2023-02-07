@@ -56,7 +56,6 @@
 /* Configure the distance of Avoid mode, Follow mode and Keep Distance mode */
 #define AVOID_DISTANCE 10
 #define FOLLOW_DISTANCE 20
-#define KEEP_DISTANCE_DISTANCE 5
 
 /* Define built-in LED pin */
 #define BUILT_IN_LED 13
@@ -114,7 +113,6 @@ bool key_I = false;
 
 bool key_E = false;
 bool key_F = false;
-bool key_G = false;
 
 char key_J_Voice[20];
 
@@ -258,23 +256,6 @@ void follow() {
     }
 }
 
-void keep_distance() {
-    if (distance < KEEP_DISTANCE_DISTANCE) {
-        if (last_obstacle_state == false) {
-            hook();
-            stand();
-        }
-        last_obstacle_state = true;
-        backward();
-    } else if(distance > KEEP_DISTANCE_DISTANCE + 5 && distance < 100) {
-        last_obstacle_state = false;
-        forward();
-    } else {
-        last_obstacle_state = false;
-        stand();
-    }
-}
-
 int map_value (int input, int input_min, int input_max, int output_min, int output_max) {
     int output = 0; 
     // limit input
@@ -359,7 +340,6 @@ void onReceive() {
     /*------------------ mode ----------------------*/
     key_E = ws.getSwitch(REGION_E);
     key_F = ws.getSwitch(REGION_F);
-    key_G = ws.getSwitch(REGION_G);
     
     if (key_E) {
         autonomous_mode = true;
@@ -369,13 +349,9 @@ void onReceive() {
         autonomous_mode = true;
         follow();
         return;
-    } else if (key_G) {
-        autonomous_mode = true;
-        keep_distance();
-        return;
     } else {
         if (autonomous_mode) {
-            if (key_E != NULL && key_F != NULL && key_G != NULL) {
+            if (key_E != NULL && key_F != NULL) {
                 autonomous_mode = false;
                 last_obstacle_state = false;
                 stand();
