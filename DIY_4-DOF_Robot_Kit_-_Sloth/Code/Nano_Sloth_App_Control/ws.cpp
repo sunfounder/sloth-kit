@@ -5,7 +5,7 @@
 *  functions for manipulating string 
 */
 #define IsStartWith(str, prefix) (strncmp(str, prefix, strlen(prefix)) == 0)
-#define StrAppend(str, suffix) uint32_t len=strlen(str); str[len] = suffix; str[len+1] = '\0'
+#define StrAppend(str, suffix) uint32_t len=strlen(str); str[len] = suffix; str[len+1] = '\0';
 #define StrClear(str) str[0] = 0
 
 /**
@@ -22,7 +22,7 @@ void WS::begin(
     const char* ssid,
     const char* password, 
     const char* wifi_mode, 
-    const char* ws_port
+    const char* ws_port,
     const char* name,
     const char* type) 
 {
@@ -113,18 +113,22 @@ void WS::readInto(char* buffer) {
 
         if (incomingChar == '\n') {
             finished = true;
+            buffer[count] = '\0';
+            delayMicroseconds(200);
             ws_debug("recv: ");
             ws_debugln(buffer);
             break;
         } else if (incomingChar == '\r') {
             continue;
         } else if ((int)incomingChar > 31 && (int)incomingChar < 127) {
-            StrAppend(buffer, incomingChar);
-            delayMicroseconds(100); // This delay is necessary, wait for operation complete 
+            // StrAppend(buffer, incomingChar);
+            // ws_debugln(incomingChar);
+            buffer[count] = incomingChar;
+            delayMicroseconds(100);
             count ++;
         }
     }
-
+  
 }
 
 
@@ -151,7 +155,7 @@ void WS::command(const char* command, const char* value, char* result) {
             this->subString(result, strlen(OK_FLAG) + 1); // Add 1 for Space
             return;
         }
-        delay(1);
+        delay(20); // Wait for StrAppend() complete
     }
 }
 
