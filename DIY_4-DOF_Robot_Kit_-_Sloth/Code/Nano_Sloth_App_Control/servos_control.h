@@ -53,24 +53,24 @@ const int8_t array_backward[ARRY_BACKWARD_LENGTH][SERVOS_NUM] PROGMEM = {
 
 #define ARRY_TURN_LEFT_LENGTH 6
 const int8_t array_turn_left[ARRY_TURN_LEFT_LENGTH][SERVOS_NUM] PROGMEM = {
-    {0, -20, 0, -40},
-    {-20, -20, 0, -40},
-    {-20, 0, 0, 0},
-
-    {0, 40, 0, 20},
-    {20, 40, 0, 20},
+    {0, 20, 0, 40},
+    {20, 20, 0, 40},
     {20, 0, 0, 0},
+
+    {0, -40, 0, -20},
+    {-20, -40, 0, -20},
+    {-20, 0, 0, 0},
 };
 
 #define ARRY_TURN_RIGHT_LENGTH 6
 const int8_t array_turn_right[ARRY_TURN_RIGHT_LENGTH][SERVOS_NUM] PROGMEM = {
-    {0, 40, 0, 20},
-    {0, 40, 20, 20},
-    {0, 0, 20, 0},
-
-    {0, -20, 0, -40},
-    {0, -20, -20, -40},
+    {0, -40, 0, -20},
+    {0, -40, -20, -20},
     {0, 0, -20, 0},
+
+    {0, 20, 0, 40},
+    {0, 20, 20, 40},
+    {0, 0, 20, 0},
 };
 
 #define ARRY_STAND_LENGTH 1
