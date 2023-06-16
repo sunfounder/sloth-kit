@@ -46,7 +46,7 @@ Considering the structure of Sloth, it’s better do adjust a slow speed for bac
 Cut to get two paper cushion for the robot feet, and stick them on the Sloth soles to maintain enough friction for a stable walking.
 
 
-**Q6：What is macro definition (``#define``)?**
+**Q6: What is macro definition (``#define``)?**
 
 The ``#define`` creates a macro, which is the association of an identifier or parameterized identifier with a token string. After the macro is defined, the compiler can substitute the token string for each occurrence of the identifier in the source file.
 
@@ -55,3 +55,16 @@ You can use the ``#ifdef`` directives anywhere ``#if`` can be used. The ``#ifdef
 In sloth code, we use ``#define`` and ``#ifdef`` to start corresponding functions. 
 
 
+**Q7: Why is my sloth not working and the battery is getting hot?**
+
+.. warning:: 
+
+    Due to an unfortunate manufacturing error, the polarity of some battery connectors has been reversed, which may cause overheating when using 9V battery.
+
+    To prevent any safety risks or damage to the product, please carefully check the polarity of the battery connectors before inserting a 9V battery.
+    
+    .. image:: img/wire_warning.png    
+
+    If you find that the battery connector is reversed, please do not attempt to complete the installation. Instead, please contact our customer support team. We will replace it for you as soon as possible.
+
+    Email: cs@sunfounder.com

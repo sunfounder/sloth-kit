@@ -63,6 +63,21 @@ The same method can be used to secure the No.7 and the left leg. Observe the pic
 
 **Servo INSTALL Test**
 
+
+.. warning:: 
+
+    Due to an unfortunate manufacturing error, the polarity of some battery connectors has been reversed, which may cause overheating when using 9V battery.
+
+    To prevent any safety risks or damage to the product, please carefully check the polarity of the battery connectors before inserting a 9V battery.
+    
+    .. image:: img/wire_warning.png    
+
+    If you find that the battery connector is reversed, please do not attempt to complete the installation. Instead, please contact our customer support team. We will replace it for you as soon as possible.
+
+    Email: cs@sunfounder.com
+
+
+
 Connect the 4 servos to pin 9, 10, 11 and 12 respectively again. This is designed to keep the servo angle of the upload code at 90°(internal angle) before the servo shaft is installed, in order to let the Sloth remain upright after assembly.
 
 .. image:: img/assembly_14.png

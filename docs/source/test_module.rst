@@ -1,10 +1,22 @@
 Test Servos and the Ultrasonic Module
 =====================================
 
-Before assembling, you need to test the servos and the ultrasonic module according to the following #. 
+Before assembling, you need to test the servos and the ultrasonic module according to the following. 
 
 Test the Servo
 ------------------
+
+.. warning:: 
+
+    Due to an unfortunate manufacturing error, the polarity of some battery connectors has been reversed, which may cause overheating when using 9V battery.
+
+    To prevent any safety risks or damage to the product, please carefully check the polarity of the battery connectors before inserting a 9V battery.
+    
+    .. image:: img/wire_warning.png    
+
+    If you find that the battery connector is reversed, please do not attempt to complete the installation. Instead, please contact our customer support team. We will replace it for you as soon as possible.
+
+    Email: cs@sunfounder.com
 
 
 #. Insert SunFounder Nano board into the Servo Control Board. 
